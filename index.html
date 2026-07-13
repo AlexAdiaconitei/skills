@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Alex Adiaconitei's skills for Claude Code and other agents compatible with the SKILL.md format.">
+<meta name="theme-color" content="#f6f2ea">
+<title>Adiaconitei Skills — tools for agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+	:root {
+		--paper: #f6f2ea;
+		--paper-2: #efe9dd;
+		--card: #fffdf8;
+		--ink: #1b1812;
+		--ink-soft: #4f483c;
+		--ink-faint: #847a68;
+		--line: #d8d0bf;
+		--line-strong: #b9ae97;
+		--accent: #0d5c46;
+		--accent-soft: #e3ede7;
+		--critical: #a82e1f;
+		--critical-bg: #f6e3df;
+		--mono: 'IBM Plex Mono', monospace;
+		--sans: 'IBM Plex Sans', sans-serif;
+		--display: 'Fraunces', serif;
+	}
+
+	* { box-sizing: border-box; margin: 0; padding: 0; }
+	html { scroll-behavior: smooth; }
+	body {
+		min-width: 320px;
+		font-family: var(--sans);
+		line-height: 1.62;
+		color: var(--ink);
+		background-color: var(--paper);
+		background-image:
+			repeating-linear-gradient(0deg, transparent, transparent 3px, rgb(27 24 18 / .012) 3px, rgb(27 24 18 / .012) 4px),
+			radial-gradient(circle at 85% -5%, rgb(13 92 70 / .08), transparent 42%);
+	}
+
+	::selection { color: var(--paper); background: var(--accent); }
+	a { color: inherit; }
+	button { font: inherit; }
+	.skip-link {
+		position: fixed;
+		top: 12px;
+		left: 12px;
+		z-index: 20;
+		padding: 8px 12px;
+		font-family: var(--mono);
+		font-size: 12px;
+		color: var(--paper);
+		background: var(--ink);
+		transform: translateY(-150%);
+	}
+	.skip-link:focus { transform: none; }
+	:focus-visible { outline: 3px solid var(--critical); outline-offset: 3px; }
+
+	.sheet { width: min(100% - 56px, 1060px); margin: 0 auto; padding-bottom: 72px; }
+
+	/* Masthead */
+	.masthead {
+		position: relative;
+		padding: 42px 0 48px;
+		border-bottom: 3px solid var(--ink);
+	}
+	.topbar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 24px;
+		padding-bottom: 54px;
+	}
+	.wordmark {
+		font-family: var(--mono);
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: .16em;
+		text-decoration: none;
+		text-transform: uppercase;
+	}
+	.wordmark span { color: var(--accent); }
+	.topnav { display: flex; gap: 24px; }
+	.topnav a {
+		padding: 3px 0;
+		font-family: var(--mono);
+		font-size: 11px;
+		letter-spacing: .08em;
+		color: var(--ink-soft);
+		text-decoration: none;
+		text-transform: uppercase;
+		border-bottom: 1px solid transparent;
+	}
+	.topnav a:hover { color: var(--accent); border-color: currentColor; }
+	.top-actions { display: flex; align-items: center; gap: 22px; }
+	.language-switch {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		padding: 3px 6px;
+		font-family: var(--mono);
+		font-size: 10px;
+		color: var(--ink-faint);
+		border: 1px solid var(--line-strong);
+		border-radius: 5px;
+	}
+	.language-switch button {
+		padding: 1px 2px;
+		font-family: var(--mono);
+		font-size: 10px;
+		font-weight: 600;
+		letter-spacing: .08em;
+		color: var(--ink-faint);
+		cursor: pointer;
+		background: transparent;
+		border: 0;
+	}
+	.language-switch button:hover { color: var(--accent); }
+	.language-switch button[aria-pressed='true'] { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+	.stamp {
+		position: absolute;
+		top: 126px;
+		right: 4px;
+		padding: 7px 13px;
+		font-family: var(--mono);
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: .14em;
+		color: var(--accent);
+		text-transform: uppercase;
+		background: var(--accent-soft);
+		border: 2px solid var(--accent);
+		border-radius: 4px;
+		transform: rotate(3.5deg);
+	}
+	.kicker {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		font-family: var(--mono);
+		font-size: 12px;
+		font-weight: 600;
+		letter-spacing: .22em;
+		color: var(--accent);
+		text-transform: uppercase;
+	}
+	.kicker::before { width: 36px; height: 2px; content: ''; background: var(--accent); }
+	h1 {
+		max-width: 15ch;
+		margin-top: 20px;
+		font-family: var(--display);
+		font-size: clamp(48px, 8vw, 86px);
+		font-weight: 900;
+		line-height: .94;
+		letter-spacing: -.025em;
+	}
+	h1 em { font-weight: 600; color: var(--accent); }
+	.hero-bottom {
+		display: grid;
+		grid-template-columns: minmax(0, 1.4fr) minmax(240px, .6fr);
+		gap: 48px;
+		align-items: end;
+		margin-top: 34px;
+		padding-top: 18px;
+		border-top: 1px solid var(--line-strong);
+	}
+	.hero-lede {
+		max-width: 62ch;
+		font-family: var(--display);
+		font-size: clamp(19px, 2.4vw, 23px);
+		line-height: 1.45;
+		color: var(--ink-soft);
+	}
+	.hero-lede strong { color: var(--ink); }
+	.edition {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 12px;
+		align-items: center;
+		justify-self: end;
+	}
+	.edition-number { font-family: var(--display); font-size: 50px; font-weight: 900; line-height: .8; }
+	.edition-label {
+		font-family: var(--mono);
+		font-size: 10px;
+		line-height: 1.45;
+		letter-spacing: .12em;
+		color: var(--ink-faint);
+		text-transform: uppercase;
+	}
+
+	/* Shared section structure */
+	.section { padding-top: 82px; }
+	.section-head {
+		display: grid;
+		grid-template-columns: 150px 1fr;
+		gap: 28px;
+		align-items: baseline;
+		padding-bottom: 14px;
+		border-bottom: 3px solid var(--ink);
+	}
+	.section-label {
+		font-family: var(--mono);
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: .15em;
+		color: var(--accent);
+		text-transform: uppercase;
+	}
+	.section h2 {
+		font-family: var(--display);
+		font-size: clamp(30px, 4vw, 42px);
+		font-weight: 800;
+		line-height: 1.05;
+		letter-spacing: -.015em;
+	}
+
+	/* Skill dossier */
+	.skill-card {
+		margin-top: 34px;
+		background: var(--card);
+		border: 1.5px solid var(--ink);
+		border-radius: 14px;
+		box-shadow: 6px 6px 0 rgb(27 24 18 / .1);
+		overflow: hidden;
+	}
+	.skill-head {
+		display: grid;
+		grid-template-columns: 78px 1fr auto;
+		gap: 18px;
+		align-items: center;
+		padding: 20px 24px;
+		background: var(--paper-2);
+		border-bottom: 1px solid var(--line);
+	}
+	.skill-index {
+		font-family: var(--display);
+		font-size: 42px;
+		font-weight: 900;
+		line-height: 1;
+		color: transparent;
+		-webkit-text-stroke: 1.3px var(--ink);
+	}
+	.skill-title h3 {
+		font-family: var(--display);
+		font-size: clamp(23px, 3vw, 30px);
+		font-weight: 800;
+		line-height: 1.1;
+		letter-spacing: -.01em;
+	}
+	.skill-title p {
+		margin-top: 4px;
+		font-family: var(--mono);
+		font-size: 11px;
+		color: var(--ink-faint);
+	}
+	.status {
+		padding: 4px 11px;
+		font-family: var(--mono);
+		font-size: 10px;
+		font-weight: 600;
+		letter-spacing: .1em;
+		color: var(--accent);
+		text-transform: uppercase;
+		background: var(--accent-soft);
+		border: 1px solid var(--accent);
+		border-radius: 999px;
+	}
+	.skill-body {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(330px, 1fr);
+		gap: 0;
+	}
+	.skill-copy, .install-panel { padding: 30px; }
+	.skill-copy { border-right: 1px solid var(--line); }
+	.eyebrow {
+		display: flex;
+		align-items: center;
+		gap: 9px;
+		margin-bottom: 12px;
+		font-family: var(--mono);
+		font-size: 10.5px;
+		font-weight: 600;
+		letter-spacing: .16em;
+		color: var(--accent);
+		text-transform: uppercase;
+	}
+	.eyebrow::after { height: 1px; content: ''; background: var(--line); flex: 1; }
+	.skill-copy > p { font-size: 15px; color: var(--ink-soft); }
+	.skill-copy > p strong { color: var(--ink); }
+	.outcomes { margin-top: 20px; list-style: none; }
+	.outcomes li {
+		position: relative;
+		padding: 8px 0 8px 22px;
+		font-size: 13.5px;
+		color: var(--ink-soft);
+		border-top: 1px dotted var(--line-strong);
+	}
+	.outcomes li::before { position: absolute; left: 2px; color: var(--accent); content: '→'; }
+	.skill-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		margin-top: 22px;
+		font-family: var(--mono);
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: .06em;
+		color: var(--accent);
+		text-decoration-thickness: 1px;
+		text-underline-offset: 4px;
+		text-transform: uppercase;
+	}
+	.skill-link::after { content: '↗'; }
+	.install-note { margin-bottom: 14px; font-size: 13px; color: var(--ink-faint); }
+	.command {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 10px;
+		padding: 10px 10px 10px 14px;
+		background: var(--ink);
+		border: 1px solid var(--ink);
+		border-radius: 8px;
+	}
+	.command code {
+		overflow-x: auto;
+		padding: 4px 0;
+		font-family: var(--mono);
+		font-size: 12px;
+		line-height: 1.5;
+		color: var(--paper);
+		white-space: nowrap;
+		scrollbar-width: thin;
+	}
+	.copy-button {
+		min-width: 78px;
+		padding: 7px 10px;
+		font-family: var(--mono);
+		font-size: 10px;
+		font-weight: 600;
+		letter-spacing: .08em;
+		color: var(--ink);
+		text-transform: uppercase;
+		cursor: pointer;
+		background: var(--paper);
+		border: 1px solid var(--paper);
+		border-radius: 5px;
+	}
+	.copy-button:hover { color: var(--paper); background: var(--accent); border-color: var(--accent); }
+	.copy-button[data-state='copied'] { color: var(--paper); background: var(--accent); border-color: var(--accent); }
+	.install-alt {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 10px 14px;
+		margin-top: 16px;
+		font-size: 12.5px;
+		color: var(--ink-soft);
+	}
+	.install-alt dt {
+		font-family: var(--mono);
+		font-size: 10px;
+		font-weight: 600;
+		letter-spacing: .08em;
+		color: var(--ink-faint);
+		text-transform: uppercase;
+	}
+	.install-alt code { font-family: var(--mono); font-size: 11.5px; color: var(--ink); word-break: break-word; }
+	.skill-foot {
+		display: flex;
+		gap: 12px;
+		align-items: center;
+		padding: 14px 24px;
+		background: linear-gradient(180deg, transparent, rgb(13 92 70 / .035));
+		border-top: 1px dashed var(--line-strong);
+	}
+	.skill-foot span {
+		font-family: var(--mono);
+		font-size: 10px;
+		letter-spacing: .12em;
+		color: var(--ink-faint);
+		text-transform: uppercase;
+	}
+	.skill-foot p { font-size: 13px; color: var(--ink-soft); }
+
+	/* About placeholder */
+	.about-grid {
+		display: grid;
+		grid-template-columns: 150px 1fr;
+		gap: 28px;
+		padding: 32px 0 0;
+	}
+	.about-marker {
+		width: 92px;
+		height: 112px;
+		display: grid;
+		place-items: center;
+		font-family: var(--display);
+		font-size: 46px;
+		font-weight: 900;
+		color: var(--accent);
+		background: var(--accent-soft);
+		border: 1.5px solid var(--accent);
+		border-radius: 8px;
+		transform: rotate(-2deg);
+	}
+	.about-copy { max-width: 690px; }
+	.about-copy h3 { font-family: var(--display); font-size: 25px; font-weight: 800; }
+	.about-copy p { margin-top: 10px; font-size: 15px; color: var(--ink-soft); }
+	.placeholder {
+		padding: 2px 5px;
+		font-family: var(--mono);
+		font-size: .86em;
+		color: var(--critical);
+		background: var(--critical-bg);
+		border-radius: 3px;
+	}
+	.profile-facts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-top: 18px;
+		list-style: none;
+	}
+	.profile-facts li {
+		padding: 6px 10px;
+		font-family: var(--mono);
+		font-size: 10px;
+		letter-spacing: .06em;
+		color: var(--ink-faint);
+		text-transform: uppercase;
+		border: 1px solid var(--line-strong);
+		border-radius: 5px;
+	}
+
+	.colophon {
+		display: flex;
+		justify-content: space-between;
+		gap: 14px;
+		margin-top: 90px;
+		padding-top: 22px;
+		font-family: var(--mono);
+		font-size: 10.5px;
+		letter-spacing: .1em;
+		color: var(--ink-faint);
+		text-transform: uppercase;
+		border-top: 3px solid var(--ink);
+	}
+	.colophon a { color: var(--ink-soft); text-underline-offset: 3px; }
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.masthead, .section, .colophon { animation: rise .58s cubic-bezier(.2, .7, .2, 1) both; }
+		.section { animation-delay: .1s; }
+		#about { animation-delay: .18s; }
+		.colophon { animation-delay: .24s; }
+		.copy-button { transition: color .16s ease, background-color .16s ease, border-color .16s ease, transform .16s ease; }
+		.copy-button:active { transform: translateY(1px); }
+		@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+	}
+
+	@media (max-width: 760px) {
+		.sheet { width: min(100% - 32px, 1060px); }
+		.masthead { padding-top: 28px; }
+		.topbar { align-items: flex-start; padding-bottom: 44px; }
+		.topnav { gap: 14px; }
+		.stamp { position: static; display: inline-block; margin-bottom: 22px; }
+		h1 { font-size: clamp(45px, 14vw, 68px); }
+		.hero-bottom, .skill-body { grid-template-columns: 1fr; }
+		.edition { justify-self: start; }
+		.section { padding-top: 64px; }
+		.section-head, .about-grid { grid-template-columns: 1fr; gap: 10px; }
+		.skill-head { grid-template-columns: 60px 1fr; }
+		.skill-head .status { grid-column: 2; justify-self: start; }
+		.skill-copy { border-right: 0; border-bottom: 1px solid var(--line); }
+		.about-marker { width: 74px; height: 82px; font-size: 36px; }
+	}
+
+	@media (max-width: 460px) {
+		.topbar { gap: 16px; }
+		.wordmark { max-width: 15ch; }
+		.topnav { flex-direction: column; gap: 5px; align-items: flex-end; }
+		.top-actions { flex-direction: column; align-items: flex-end; gap: 9px; }
+		.skill-head, .skill-copy, .install-panel { padding-left: 18px; padding-right: 18px; }
+		.command { grid-template-columns: 1fr; }
+		.copy-button { width: 100%; }
+		.colophon { flex-direction: column; }
+	}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#content" data-i18n="skip">Skip to content</a>
+<div class="sheet">
+	<header class="masthead">
+		<div class="topbar">
+			<a class="wordmark" href="https://github.com/AlexAdiaconitei/skills">Adiaconitei <span>/ skills</span></a>
+			<div class="top-actions">
+				<nav class="topnav" aria-label="Main navigation" data-i18n-aria="navLabel">
+					<a href="#skills">Skills</a>
+					<a href="#about">About</a>
+					<a href="https://github.com/AlexAdiaconitei/skills">GitHub ↗</a>
+				</nav>
+				<div class="language-switch" aria-label="Language" data-i18n-aria="languageLabel">
+					<button type="button" data-lang="en" aria-pressed="true">EN</button>
+					<span aria-hidden="true">/</span>
+					<button type="button" data-lang="es" aria-pressed="false">ES</button>
+				</div>
+			</div>
+		</div>
+		<span class="stamp" data-i18n="stamp">Catalogue · 001</span>
+		<p class="kicker" data-i18n="kicker">Agent skills · open source</p>
+		<h1 data-i18n-html="heroTitle">Tools for agents who have to <em>deliver.</em></h1>
+		<div class="hero-bottom">
+			<p class="hero-lede" data-i18n-html="heroLede"><strong>Small, installable skills with one clear job.</strong> Ready-made instructions for Claude Code and any agent compatible with the <code>SKILL.md</code> format.</p>
+			<div class="edition" aria-label="One skill available" data-i18n-aria="editionAria">
+				<span class="edition-number">1</span>
+				<span class="edition-label" data-i18n-html="editionLabel">skill published<br>July 2026</span>
+			</div>
+		</div>
+	</header>
+
+	<main id="content">
+		<section class="section" id="skills" aria-labelledby="skills-title">
+			<div class="section-head">
+				<p class="section-label" data-i18n="skillsLabel">Skills index</p>
+				<h2 id="skills-title" data-i18n-html="skillsTitle">A short collection.<br>Every piece solves something.</h2>
+			</div>
+
+			<article class="skill-card">
+				<header class="skill-head">
+					<span class="skill-index" aria-hidden="true">01</span>
+					<div class="skill-title">
+						<h3>remediation-report</h3>
+						<p>review findings → remediation plan → HTML</p>
+					</div>
+					<span class="status" data-i18n="available">Available</span>
+				</header>
+
+				<div class="skill-body">
+					<div class="skill-copy">
+						<p class="eyebrow" data-i18n="purposeLabel">What it does</p>
+						<p data-i18n-html="purpose"><strong>Turns security reviews, code reviews, audits, and technical-debt findings</strong> into a self-contained HTML remediation plan, ordered by urgency and ready to share.</p>
+						<ul class="outcomes">
+							<li data-i18n="outcome1">Prioritizes findings and groups them into executable phases.</li>
+							<li data-i18n="outcome2">Includes files, steps, effort estimates, and verifiable criteria.</li>
+							<li data-i18n="outcome3">Delivers an editorial dossier as a single HTML file.</li>
+						</ul>
+						<a class="skill-link" href="https://github.com/AlexAdiaconitei/skills/tree/main/skills/remediation-report" data-i18n="viewSkill">View skill files</a>
+					</div>
+
+					<div class="install-panel">
+						<p class="eyebrow" data-i18n="installation">Installation</p>
+						<p class="install-note" data-i18n-html="installNote">Install this skill in the current project with the <code>skills</code> CLI:</p>
+						<div class="command">
+							<code id="install-command">npx skills add AlexAdiaconitei/skills --skill remediation-report</code>
+							<button class="copy-button" type="button" data-copy="install-command" aria-describedby="copy-status" data-i18n="copy">Copy</button>
+						</div>
+						<dl class="install-alt">
+							<dt>Global</dt>
+							<dd><code>npx skills add AlexAdiaconitei/skills --skill remediation-report -g</code></dd>
+							<dt>Manual</dt>
+							<dd data-i18n-html="manualInstall">Copy <code>skills/remediation-report/</code> to <code>.claude/skills/</code>.</dd>
+						</dl>
+						<p class="sr-only" id="copy-status" role="status" aria-live="polite"></p>
+					</div>
+				</div>
+
+				<footer class="skill-foot">
+					<span data-i18n="triggerLabel">Trigger it by asking</span>
+					<p data-i18n="trigger">“Prepare an HTML remediation plan from these findings.”</p>
+				</footer>
+			</article>
+		</section>
+
+		<section class="section" id="about" aria-labelledby="about-title">
+			<div class="section-head">
+				<p class="section-label">About</p>
+				<h2 id="about-title" data-i18n="aboutTitle">Behind the repository.</h2>
+			</div>
+			<div class="about-grid">
+				<div class="about-marker" aria-hidden="true">AA</div>
+				<div class="about-copy">
+					<h3>Alex Adiaconitei</h3>
+					<p data-i18n-html="aboutCopy"><span class="placeholder">[Write a 2–3 line introduction here]</span> Explain what you do, what you specialize in, and the kind of problems you enjoy solving. Keep it brief: a small professional introduction, not a full biography.</p>
+					<ul class="profile-facts" aria-label="Professional details to complete" data-i18n-aria="profileAria">
+						<li data-i18n="profileRole">[Role / specialty]</li>
+						<li data-i18n="profileTech">[Main technologies]</li>
+						<li data-i18n="profileLocation">[Location or remote]</li>
+						<li data-i18n="profileLink">[Professional link]</li>
+					</ul>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<footer class="colophon">
+		<span>Adiaconitei Skills · MIT License</span>
+		<a href="https://github.com/AlexAdiaconitei/skills" data-i18n="source">Source code on GitHub ↗</a>
+	</footer>
+</div>
+
+<script>
+	const translations = {
+		en: {
+			pageTitle: 'Adiaconitei Skills — tools for agents',
+			description: "Alex Adiaconitei's skills for Claude Code and other agents compatible with the SKILL.md format.",
+			skip: 'Skip to content',
+			navLabel: 'Main navigation',
+			languageLabel: 'Language',
+			stamp: 'Catalogue · 001',
+			kicker: 'Agent skills · open source',
+			heroTitle: 'Tools for agents who have to <em>deliver.</em>',
+			heroLede: '<strong>Small, installable skills with one clear job.</strong> Ready-made instructions for Claude Code and any agent compatible with the <code>SKILL.md</code> format.',
+			editionAria: 'One skill available',
+			editionLabel: 'skill published<br>July 2026',
+			skillsLabel: 'Skills index',
+			skillsTitle: 'A short collection.<br>Every piece solves something.',
+			available: 'Available',
+			purposeLabel: 'What it does',
+			purpose: '<strong>Turns security reviews, code reviews, audits, and technical-debt findings</strong> into a self-contained HTML remediation plan, ordered by urgency and ready to share.',
+			outcome1: 'Prioritizes findings and groups them into executable phases.',
+			outcome2: 'Includes files, steps, effort estimates, and verifiable criteria.',
+			outcome3: 'Delivers an editorial dossier as a single HTML file.',
+			viewSkill: 'View skill files',
+			installation: 'Installation',
+			installNote: 'Install this skill in the current project with the <code>skills</code> CLI:',
+			copy: 'Copy',
+			copyDone: 'Copied',
+			copyError: 'Error',
+			copyStatus: 'Installation command copied to the clipboard.',
+			copyFailure: 'Could not copy the command. Select it manually.',
+			manualInstall: 'Copy <code>skills/remediation-report/</code> to <code>.claude/skills/</code>.',
+			triggerLabel: 'Trigger it by asking',
+			trigger: '“Prepare an HTML remediation plan from these findings.”',
+			aboutTitle: 'Behind the repository.',
+			aboutCopy: '<span class="placeholder">[Write a 2–3 line introduction here]</span> Explain what you do, what you specialize in, and the kind of problems you enjoy solving. Keep it brief: a small professional introduction, not a full biography.',
+			profileAria: 'Professional details to complete',
+			profileRole: '[Role / specialty]',
+			profileTech: '[Main technologies]',
+			profileLocation: '[Location or remote]',
+			profileLink: '[Professional link]',
+			source: 'Source code on GitHub ↗'
+		},
+		es: {
+			pageTitle: 'Adiaconitei Skills — herramientas para agentes',
+			description: 'Skills de Alex Adiaconitei para Claude Code y otros agentes compatibles con el formato SKILL.md.',
+			skip: 'Saltar al contenido',
+			navLabel: 'Navegación principal',
+			languageLabel: 'Idioma',
+			stamp: 'Catálogo · 001',
+			kicker: 'Agent skills · código abierto',
+			heroTitle: 'Herramientas para agentes que tienen que <em>entregar.</em>',
+			heroLede: '<strong>Skills pequeñas, instalables y con una tarea concreta.</strong> Instrucciones listas para Claude Code y cualquier agente compatible con el formato <code>SKILL.md</code>.',
+			editionAria: 'Una skill disponible',
+			editionLabel: 'skill publicada<br>julio de 2026',
+			skillsLabel: 'Índice de skills',
+			skillsTitle: 'Una colección breve.<br>Cada pieza resuelve algo.',
+			available: 'Disponible',
+			purposeLabel: 'Para qué sirve',
+			purpose: 'Convierte los hallazgos de una revisión de <strong>seguridad, código, auditoría o deuda técnica</strong> en un plan de corrección HTML autocontenido, ordenado por urgencia y listo para compartir.',
+			outcome1: 'Prioriza findings y los agrupa en fases ejecutables.',
+			outcome2: 'Incluye archivos, pasos, esfuerzo y criterios verificables.',
+			outcome3: 'Entrega un dossier editorial en un único archivo HTML.',
+			viewSkill: 'Ver archivos de la skill',
+			installation: 'Instalación',
+			installNote: 'Instala esta skill en el proyecto actual con la CLI de <code>skills</code>:',
+			copy: 'Copiar',
+			copyDone: 'Copiado',
+			copyError: 'Error',
+			copyStatus: 'Comando de instalación copiado al portapapeles.',
+			copyFailure: 'No se pudo copiar. Selecciona el comando manualmente.',
+			manualInstall: 'Copia <code>skills/remediation-report/</code> a <code>.claude/skills/</code>.',
+			triggerLabel: 'Actívala pidiendo',
+			trigger: '“Prepara un plan de corrección HTML con estos findings.”',
+			aboutTitle: 'Detrás del repositorio.',
+			aboutCopy: '<span class="placeholder">[Escribe aquí una presentación de 2–3 líneas]</span> Cuenta qué haces, en qué te especializas y qué tipo de problemas te interesa resolver. Breve: una pequeña introducción profesional, no una biografía completa.',
+			profileAria: 'Datos profesionales por completar',
+			profileRole: '[Rol / especialidad]',
+			profileTech: '[Tecnologías principales]',
+			profileLocation: '[Ciudad o remoto]',
+			profileLink: '[Enlace profesional]',
+			source: 'Código fuente en GitHub ↗'
+		}
+	};
+
+	const status = document.querySelector('#copy-status');
+	const description = document.querySelector('meta[name="description"]');
+	let currentLanguage = 'en';
+
+	function setLanguage(language, updateUrl = true) {
+		currentLanguage = language === 'es' ? 'es' : 'en';
+		const messages = translations[currentLanguage];
+
+		document.documentElement.lang = currentLanguage;
+		document.title = messages.pageTitle;
+		description.content = messages.description;
+		document.querySelectorAll('[data-i18n]').forEach((element) => {
+			element.textContent = messages[element.dataset.i18n];
+		});
+		document.querySelectorAll('[data-i18n-html]').forEach((element) => {
+			element.innerHTML = messages[element.dataset.i18nHtml];
+		});
+		document.querySelectorAll('[data-i18n-aria]').forEach((element) => {
+			element.setAttribute('aria-label', messages[element.dataset.i18nAria]);
+		});
+		document.querySelectorAll('[data-lang]').forEach((button) => {
+			button.setAttribute('aria-pressed', String(button.dataset.lang === currentLanguage));
+		});
+		status.textContent = '';
+
+		if (updateUrl) {
+			const url = new URL(window.location.href);
+			if (currentLanguage === 'es') url.searchParams.set('lang', 'es');
+			else url.searchParams.delete('lang');
+			history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+		}
+	}
+
+	async function copyText(text) {
+		if (navigator.clipboard && window.isSecureContext) {
+			await navigator.clipboard.writeText(text);
+			return;
+		}
+
+		const input = document.createElement('textarea');
+		input.value = text;
+		input.setAttribute('readonly', '');
+		input.style.position = 'fixed';
+		input.style.opacity = '0';
+		document.body.appendChild(input);
+		input.select();
+		const copied = document.execCommand('copy');
+		input.remove();
+		if (!copied) throw new Error('Copy command failed');
+	}
+
+	document.querySelectorAll('[data-lang]').forEach((button) => {
+		button.addEventListener('click', () => setLanguage(button.dataset.lang));
+	});
+
+	document.querySelectorAll('[data-copy]').forEach((button) => {
+		button.addEventListener('click', async () => {
+			const source = document.getElementById(button.dataset.copy);
+			if (!source) return;
+
+			try {
+				await copyText(source.textContent.trim());
+				button.textContent = translations[currentLanguage].copyDone;
+				button.dataset.state = 'copied';
+				status.textContent = translations[currentLanguage].copyStatus;
+			} catch {
+				button.textContent = translations[currentLanguage].copyError;
+				status.textContent = translations[currentLanguage].copyFailure;
+			}
+
+			window.setTimeout(() => {
+				button.textContent = translations[currentLanguage].copy;
+				delete button.dataset.state;
+			}, 2000);
+		});
+	});
+
+	const requestedLanguage = new URLSearchParams(window.location.search).get('lang');
+	setLanguage(requestedLanguage === 'es' ? 'es' : 'en', false);
+</script>
+</body>
+</html>
