@@ -435,6 +435,7 @@
 		border: 1px solid var(--line-strong);
 		border-radius: 5px;
 	}
+	.profile-facts a { color: inherit; text-underline-offset: 3px; }
 
 	.colophon {
 		display: flex;
@@ -591,15 +592,14 @@
 				<h2 id="about-title" data-i18n="aboutTitle">Behind the repository.</h2>
 			</div>
 			<div class="about-grid">
-				<div class="about-marker" aria-hidden="true">AA</div>
+				<div class="about-marker" id="profile-initials" aria-hidden="true">AA</div>
 				<div class="about-copy">
-					<h3>Alex Adiaconitei</h3>
-					<p data-i18n-html="aboutCopy"><span class="placeholder">[Write a 2–3 line introduction here]</span> Explain what you do, what you specialize in, and the kind of problems you enjoy solving. Keep it brief: a small professional introduction, not a full biography.</p>
-					<ul class="profile-facts" aria-label="Professional details to complete" data-i18n-aria="profileAria">
-						<li data-i18n="profileRole">[Role / specialty]</li>
-						<li data-i18n="profileTech">[Main technologies]</li>
-						<li data-i18n="profileLocation">[Location or remote]</li>
-						<li data-i18n="profileLink">[Professional link]</li>
+					<h3 id="profile-name">Alex Adiaconitei</h3>
+					<p><span class="placeholder" id="profile-bio">[Write a 2–3 line professional introduction here.]</span></p>
+					<ul class="profile-facts" id="profile-facts" aria-label="Professional details to complete" data-i18n-aria="profileAria">
+						<li>[Role / specialty]</li>
+						<li>[Main technologies]</li>
+						<li>[Location or remote]</li>
 					</ul>
 				</div>
 			</div>
@@ -646,12 +646,7 @@
 			triggerLabel: 'Trigger it by asking',
 			trigger: '“Prepare an HTML remediation plan from these findings.”',
 			aboutTitle: 'Behind the repository.',
-			aboutCopy: '<span class="placeholder">[Write a 2–3 line introduction here]</span> Explain what you do, what you specialize in, and the kind of problems you enjoy solving. Keep it brief: a small professional introduction, not a full biography.',
 			profileAria: 'Professional details to complete',
-			profileRole: '[Role / specialty]',
-			profileTech: '[Main technologies]',
-			profileLocation: '[Location or remote]',
-			profileLink: '[Professional link]',
 			source: 'Source code on GitHub ↗'
 		},
 		es: {
@@ -686,12 +681,7 @@
 			triggerLabel: 'Actívala pidiendo',
 			trigger: '“Prepara un plan de corrección HTML con estos findings.”',
 			aboutTitle: 'Detrás del repositorio.',
-			aboutCopy: '<span class="placeholder">[Escribe aquí una presentación de 2–3 líneas]</span> Cuenta qué haces, en qué te especializas y qué tipo de problemas te interesa resolver. Breve: una pequeña introducción profesional, no una biografía completa.',
 			profileAria: 'Datos profesionales por completar',
-			profileRole: '[Rol / especialidad]',
-			profileTech: '[Tecnologías principales]',
-			profileLocation: '[Ciudad o remoto]',
-			profileLink: '[Enlace profesional]',
 			source: 'Código fuente en GitHub ↗'
 		}
 	};
@@ -699,6 +689,76 @@
 	const status = document.querySelector('#copy-status');
 	const description = document.querySelector('meta[name="description"]');
 	let currentLanguage = 'en';
+	const fallbackProfile = {
+		name: 'Alex Adiaconitei',
+		initials: 'AA',
+		bio: {
+			en: '[Write a 2–3 line professional introduction here.]',
+			es: '[Escribe aquí una presentación profesional de 2–3 líneas.]'
+		},
+		facts: {
+			en: ['[Role / specialty]', '[Main technologies]', '[Location or remote]'],
+			es: ['[Rol / especialidad]', '[Tecnologías principales]', '[Ciudad o remoto]']
+		},
+		links: []
+	};
+	let profile = fallbackProfile;
+
+	function localize(value) {
+		if (typeof value === 'string') return value;
+		return value?.[currentLanguage] ?? value?.en ?? '';
+	}
+
+	function renderProfile() {
+		const name = typeof profile.name === 'string' && profile.name.trim() ? profile.name : fallbackProfile.name;
+		const initials = typeof profile.initials === 'string' && profile.initials.trim() ? profile.initials : fallbackProfile.initials;
+		const bio = localize(profile.bio) || localize(fallbackProfile.bio);
+		const configuredFacts = profile.facts?.[currentLanguage] ?? profile.facts?.en;
+		const facts = Array.isArray(configuredFacts) ? configuredFacts : fallbackProfile.facts[currentLanguage];
+		const links = Array.isArray(profile.links) ? profile.links : [];
+
+		document.querySelector('#profile-name').textContent = name;
+		document.querySelector('#profile-initials').textContent = initials;
+		const bioElement = document.querySelector('#profile-bio');
+		bioElement.textContent = bio;
+		bioElement.classList.toggle('placeholder', bio.trim().startsWith('['));
+
+		const list = document.querySelector('#profile-facts');
+		list.replaceChildren();
+		[...facts, ...links].forEach((item) => {
+			const entry = document.createElement('li');
+			if (typeof item === 'string') {
+				entry.textContent = item;
+			} else if (item && typeof item === 'object') {
+				const label = localize(item.label);
+				try {
+					const url = new URL(item.url);
+					if (!['http:', 'https:', 'mailto:'].includes(url.protocol)) return;
+					const link = document.createElement('a');
+					link.href = url.href;
+					link.textContent = label;
+					link.rel = 'noopener';
+					entry.appendChild(link);
+				} catch {
+					return;
+				}
+			}
+			list.appendChild(entry);
+		});
+	}
+
+	async function loadProfile() {
+		try {
+			const response = await fetch('./about.json', { cache: 'no-store' });
+			if (!response.ok) throw new Error(`Profile request failed: ${response.status}`);
+			const loadedProfile = await response.json();
+			if (!loadedProfile || typeof loadedProfile !== 'object') throw new Error('Invalid profile data');
+			profile = loadedProfile;
+		} catch {
+			profile = fallbackProfile;
+		}
+		renderProfile();
+	}
 
 	function setLanguage(language, updateUrl = true) {
 		currentLanguage = language === 'es' ? 'es' : 'en';
@@ -720,6 +780,7 @@
 			button.setAttribute('aria-pressed', String(button.dataset.lang === currentLanguage));
 		});
 		status.textContent = '';
+		renderProfile();
 
 		if (updateUrl) {
 			const url = new URL(window.location.href);
@@ -775,6 +836,7 @@
 
 	const requestedLanguage = new URLSearchParams(window.location.search).get('lang');
 	setLanguage(requestedLanguage === 'es' ? 'es' : 'en', false);
+	loadProfile();
 </script>
 </body>
 </html>
