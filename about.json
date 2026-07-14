@@ -2,25 +2,31 @@
   "name": "Alex Adiaconitei",
   "initials": "AA",
   "bio": {
-    "en": "[Write a 2–3 line professional introduction here.]",
-    "es": "[Escribe aquí una presentación profesional de 2–3 líneas.]"
+    "en": "Software engineer specialized in backend development with Java and Spring Boot, comfortable working with JavaScript and Python. I enjoy building personal projects to keep learning, with a growing interest in infrastructure.",
+    "es": "Software engineer especializado en backend con Java y Spring Boot, con soltura en JavaScript y Python. Disfruto creando proyectos personales para seguir aprendiendo, con un interés creciente en el mundo de la infraestructura."
   },
   "facts": {
     "en": [
-      "[Role / specialty]",
-      "[Main technologies]",
-      "[Location or remote]"
+      "Backend Software Engineer",
+      "Java, Spring Boot, JavaScript, Python",
+      "Remote"
     ],
     "es": [
-      "[Rol / especialidad]",
-      "[Tecnologías principales]",
-      "[Ciudad o remoto]"
+      "[Backend Software Engineer]",
+      "[Java, Spring Boot, JavaScript, Python]",
+      "[Remoto]"
     ]
   },
   "links": [
     {
       "label": "GitHub",
+      "icon": "github",
       "url": "https://github.com/AlexAdiaconitei"
+    },
+    {
+      "label": "LinkedIn",
+      "icon": "linkedin",
+      "url": "https://www.linkedin.com/in/replace-me"
     }
   ]
 }

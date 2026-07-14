@@ -443,7 +443,31 @@
 		border: 1px solid var(--line-strong);
 		border-radius: 5px;
 	}
-	.profile-facts a { color: inherit; text-underline-offset: 3px; }
+	.profile-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-top: 14px;
+		list-style: none;
+	}
+	.profile-links a {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		padding: 8px 12px;
+		font-family: var(--mono);
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: .04em;
+		color: var(--paper);
+		text-decoration: none;
+		background: var(--accent);
+		border: 1.5px solid var(--accent);
+		border-radius: 6px;
+		box-shadow: 2px 2px 0 rgb(27 24 18 / .14);
+	}
+	.profile-links a:hover { background: var(--ink); border-color: var(--ink); }
+	.profile-link-icon { width: 16px; height: 16px; flex: 0 0 auto; fill: currentColor; }
 
 	.colophon {
 		display: flex;
@@ -613,6 +637,7 @@
 						<li>[Main technologies]</li>
 						<li>[Location or remote]</li>
 					</ul>
+					<ul class="profile-links" id="profile-links" aria-label="Professional links" data-i18n-aria="linksAria"></ul>
 				</div>
 			</div>
 		</section>
@@ -659,6 +684,7 @@
 			trigger: '“Prepare an HTML remediation plan from these findings.”',
 			aboutTitle: 'Behind the repository.',
 			profileAria: 'Professional details to complete',
+			linksAria: 'Professional links',
 			source: 'Source code on GitHub ↗'
 		},
 		es: {
@@ -694,6 +720,7 @@
 			trigger: '“Prepara un plan de corrección HTML con estos findings.”',
 			aboutTitle: 'Detrás del repositorio.',
 			profileAria: 'Datos profesionales por completar',
+			linksAria: 'Enlaces profesionales',
 			source: 'Código fuente en GitHub ↗'
 		}
 	};
@@ -736,6 +763,25 @@
 		if (typeof value === 'string') return value;
 		return value?.[currentLanguage] ?? value?.en ?? '';
 	}
+	const linkIcons = {
+		github: 'M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.835 2.809 1.305 3.495.998.108-.776.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23a11.5 11.5 0 0 1 3.003-.404c1.02.005 2.045.138 3.003.404 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22v3.293c0 .319.21.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12',
+		linkedin: 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124zM6.814 20.452H3.861V9h2.953v11.452z'
+	};
+
+	function createLinkIcon(name) {
+		const pathData = linkIcons[typeof name === 'string' ? name.toLowerCase() : ''];
+		if (!pathData) return null;
+
+		const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+		const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+		svg.setAttribute('viewBox', '0 0 24 24');
+		svg.setAttribute('aria-hidden', 'true');
+		svg.setAttribute('focusable', 'false');
+		svg.classList.add('profile-link-icon');
+		path.setAttribute('d', pathData);
+		svg.appendChild(path);
+		return svg;
+	}
 
 	function renderProfile() {
 		const name = typeof profile.name === 'string' && profile.name.trim() ? profile.name : fallbackProfile.name;
@@ -752,28 +798,36 @@
 		bioElement.textContent = bio;
 		bioElement.classList.toggle('placeholder', bio.trim().startsWith('['));
 
-		const list = document.querySelector('#profile-facts');
-		list.replaceChildren();
-		[...facts, ...links].forEach((item) => {
+		const factsList = document.querySelector('#profile-facts');
+		factsList.replaceChildren();
+		facts.forEach((fact) => {
 			const entry = document.createElement('li');
-			if (typeof item === 'string') {
-				entry.textContent = item;
-			} else if (item && typeof item === 'object') {
-				const label = localize(item.label);
-				try {
-					const url = new URL(item.url);
-					if (!['http:', 'https:', 'mailto:'].includes(url.protocol)) return;
-					const link = document.createElement('a');
-					link.href = url.href;
-					link.textContent = label;
-					link.rel = 'noopener';
-					entry.appendChild(link);
-				} catch {
-					return;
-				}
-			}
-			list.appendChild(entry);
+			entry.textContent = fact;
+			factsList.appendChild(entry);
 		});
+
+		const linksList = document.querySelector('#profile-links');
+		linksList.replaceChildren();
+		links.forEach((item) => {
+			if (!item || typeof item !== 'object') return;
+			const label = localize(item.label);
+			try {
+				const url = new URL(item.url);
+				if (!['http:', 'https:', 'mailto:'].includes(url.protocol)) return;
+				const entry = document.createElement('li');
+				const link = document.createElement('a');
+				const icon = createLinkIcon(item.icon);
+				link.href = url.href;
+				link.rel = 'noopener';
+				if (icon) link.appendChild(icon);
+				link.append(label);
+				entry.appendChild(link);
+				linksList.appendChild(entry);
+			} catch {
+				return;
+			}
+		});
+		linksList.hidden = linksList.children.length === 0;
 	}
 
 	async function loadProfile() {
