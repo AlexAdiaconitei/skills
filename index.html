@@ -559,7 +559,7 @@
 		<span class="stamp" data-i18n="stamp">Catalogue · 001</span>
 		<p class="kicker" data-i18n="kicker">Agent skills · open source</p>
 		<h1 data-i18n-html="heroTitle">Tools for agents who have to <em>deliver.</em></h1>
-		<div class="hero-support" aria-label="Support on Ko-fi">
+		<div class="hero-support" aria-label="Support on Ko-fi" data-i18n-aria="kofiAria">
 			<script src="https://storage.ko-fi.com/cdn/widget/Widget_2.js"></script>
 			<script>kofiwidget2.init('Buy me a coffee', '#72a4f2', 'K3Q5236GOO');kofiwidget2.draw();</script>
 		</div>
@@ -667,6 +667,8 @@
 			kicker: 'Agent skills · open source',
 			heroTitle: 'Tools for agents who have to <em>deliver.</em>',
 			heroLede: '<strong>Small, installable skills with one clear job.</strong> Ready-made instructions for Claude Code and any agent compatible with the <code>SKILL.md</code> format.',
+			kofiText: 'Buy me a coffee',
+			kofiAria: 'Support on Ko-fi',
 			editionAria: 'One skill available',
 			editionLabel: 'skill published<br>July 2026',
 			skillsLabel: 'Skills index',
@@ -703,6 +705,8 @@
 			kicker: 'Agent skills · código abierto',
 			heroTitle: 'Herramientas para agentes que tienen que <em>entregar.</em>',
 			heroLede: '<strong>Skills pequeñas, instalables y con una tarea concreta.</strong> Instrucciones listas para Claude Code y cualquier agente compatible con el formato <code>SKILL.md</code>.',
+			kofiText: 'Invítame a un café',
+			kofiAria: 'Apóyame en Ko-fi',
 			editionAria: 'Una skill disponible',
 			editionLabel: 'skill publicada<br>julio de 2026',
 			skillsLabel: 'Índice de skills',
@@ -866,6 +870,13 @@
 		document.querySelectorAll('[data-i18n-aria]').forEach((element) => {
 			element.setAttribute('aria-label', messages[element.dataset.i18nAria]);
 		});
+		const kofiWidgetText = document.querySelector('.kofitext');
+		const kofiButton = document.querySelector('.kofi-button');
+		if (kofiWidgetText && kofiButton) {
+			const kofiImage = kofiWidgetText.querySelector('img');
+			kofiWidgetText.replaceChildren(...(kofiImage ? [kofiImage] : []), messages.kofiText);
+			kofiButton.title = messages.kofiAria;
+		}
 		document.querySelectorAll('[data-lang]').forEach((button) => {
 			button.setAttribute('aria-pressed', String(button.dataset.lang === currentLanguage));
 		});
