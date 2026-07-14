@@ -393,20 +393,28 @@
 		gap: 28px;
 		padding: 32px 0 0;
 	}
+	.about-photo {
+		width: 120px;
+		height: 144px;
+		display: grid;
+		overflow: hidden;
+		background: var(--accent-soft);
+		border: 1.5px solid var(--accent);
+		border-radius: 8px;
+		box-shadow: 4px 4px 0 rgb(27 24 18 / .08);
+		transform: rotate(-2deg);
+	}
+	.about-photo > * { grid-area: 1 / 1; }
+	.about-photo img { width: 100%; height: 100%; display: block; object-fit: cover; }
 	.about-marker {
-		width: 92px;
-		height: 112px;
 		display: grid;
 		place-items: center;
 		font-family: var(--display);
 		font-size: 46px;
 		font-weight: 900;
 		color: var(--accent);
-		background: var(--accent-soft);
-		border: 1.5px solid var(--accent);
-		border-radius: 8px;
-		transform: rotate(-2deg);
 	}
+	.about-marker[hidden] { display: none; }
 	.about-copy { max-width: 690px; }
 	.about-copy h3 { font-family: var(--display); font-size: 25px; font-weight: 800; }
 	.about-copy p { margin-top: 10px; font-size: 15px; color: var(--ink-soft); }
@@ -487,7 +495,8 @@
 		.skill-head { grid-template-columns: 60px 1fr; }
 		.skill-head .status { grid-column: 2; justify-self: start; }
 		.skill-copy { border-right: 0; border-bottom: 1px solid var(--line); }
-		.about-marker { width: 74px; height: 82px; font-size: 36px; }
+		.about-photo { width: 92px; height: 110px; }
+		.about-marker { font-size: 36px; }
 	}
 
 	@media (max-width: 460px) {
@@ -592,7 +601,10 @@
 				<h2 id="about-title" data-i18n="aboutTitle">Behind the repository.</h2>
 			</div>
 			<div class="about-grid">
-				<div class="about-marker" id="profile-initials" aria-hidden="true">AA</div>
+				<figure class="about-photo">
+					<img id="profile-image" src="./alex.webp" alt="Alex Adiaconitei" width="512" height="512">
+					<span class="about-marker" id="profile-initials" aria-hidden="true" hidden>AA</span>
+				</figure>
 				<div class="about-copy">
 					<h3 id="profile-name">Alex Adiaconitei</h3>
 					<p><span class="placeholder" id="profile-bio">[Write a 2–3 line professional introduction here.]</span></p>
@@ -689,6 +701,22 @@
 	const status = document.querySelector('#copy-status');
 	const description = document.querySelector('meta[name="description"]');
 	let currentLanguage = 'en';
+	const profileImage = document.querySelector('#profile-image');
+	const profileImageFallback = document.querySelector('#profile-initials');
+	const showProfileImage = () => {
+		profileImage.hidden = false;
+		profileImageFallback.hidden = true;
+	};
+	const showProfileImageFallback = () => {
+		profileImage.hidden = true;
+		profileImageFallback.hidden = false;
+	};
+	profileImage.addEventListener('load', showProfileImage);
+	profileImage.addEventListener('error', showProfileImageFallback);
+	if (profileImage.complete) {
+		if (profileImage.naturalWidth > 0) showProfileImage();
+		else showProfileImageFallback();
+	}
 	const fallbackProfile = {
 		name: 'Alex Adiaconitei',
 		initials: 'AA',
@@ -719,6 +747,7 @@
 
 		document.querySelector('#profile-name').textContent = name;
 		document.querySelector('#profile-initials').textContent = initials;
+		profileImage.alt = name;
 		const bioElement = document.querySelector('#profile-bio');
 		bioElement.textContent = bio;
 		bioElement.classList.toggle('placeholder', bio.trim().startsWith('['));
