@@ -556,7 +556,7 @@
 				</div>
 			</div>
 		</div>
-		<span class="stamp" data-i18n="stamp">Catalogue · 001</span>
+		<span class="stamp" data-i18n="stamp">Catalogue · 002</span>
 		<p class="kicker" data-i18n="kicker">Agent skills · open source</p>
 		<h1 data-i18n-html="heroTitle">Tools for agents who have to <em>deliver.</em></h1>
 		<div class="hero-support" aria-label="Support on Ko-fi" data-i18n-aria="kofiAria">
@@ -565,9 +565,9 @@
 		</div>
 		<div class="hero-bottom">
 			<p class="hero-lede" data-i18n-html="heroLede"><strong>Small, installable skills with one clear job.</strong> Ready-made instructions for Claude Code and any agent compatible with the <code>SKILL.md</code> format.</p>
-			<div class="edition" aria-label="One skill available" data-i18n-aria="editionAria">
-				<span class="edition-number">1</span>
-				<span class="edition-label" data-i18n-html="editionLabel">skill published<br>July 2026</span>
+			<div class="edition" aria-label="Two skills available" data-i18n-aria="editionAria">
+				<span class="edition-number">2</span>
+				<span class="edition-label" data-i18n-html="editionLabel">skills published<br>July 2026</span>
 			</div>
 		</div>
 	</header>
@@ -623,6 +623,51 @@
 					<p data-i18n="trigger">“Prepare an HTML remediation plan from these findings.”</p>
 				</footer>
 			</article>
+
+			<article class="skill-card">
+				<header class="skill-head">
+					<span class="skill-index" aria-hidden="true">02</span>
+					<div class="skill-title">
+						<h3>planning-dossier</h3>
+						<p data-i18n="planningFlow">decisions → immutable rounds → implementation handoff</p>
+					</div>
+					<span class="status" data-i18n="available">Available</span>
+				</header>
+
+				<div class="skill-body">
+					<div class="skill-copy">
+						<p class="eyebrow" data-i18n="purposeLabel">What it does</p>
+						<p data-i18n-html="planningPurpose"><strong>Builds an evidence-backed, navigable planning record</strong> with decision frontiers, unresolved threads, and a clear implementation handoff.</p>
+						<ul class="outcomes">
+							<li data-i18n="planningOutcome1">Shows only decisions whose dependencies are resolved, while tracking blocked and deferred threads.</li>
+							<li data-i18n="planningOutcome2">Publishes immutable rounds, maintains a current index, and autosaves selections locally.</li>
+							<li data-i18n="planningOutcome3">Exports compact Markdown continuation capsules and a final handoff without changing product code.</li>
+						</ul>
+						<a class="skill-link" href="https://github.com/AlexAdiaconitei/skills/tree/main/skills/planning-dossier" data-i18n="viewSkill">View skill files</a>
+					</div>
+
+					<div class="install-panel">
+						<p class="eyebrow" data-i18n="installation">Installation</p>
+						<p class="install-note" data-i18n-html="installNote">Install this skill in the current project with the <code>skills</code> CLI:</p>
+						<div class="command">
+							<code id="planning-install-command">npx skills add AlexAdiaconitei/skills --skill planning-dossier</code>
+							<button class="copy-button" type="button" data-copy="planning-install-command" aria-describedby="planning-copy-status" data-i18n="copy">Copy</button>
+						</div>
+						<dl class="install-alt">
+							<dt>Global</dt>
+							<dd><code>npx skills add AlexAdiaconitei/skills --skill planning-dossier -g</code></dd>
+							<dt>Manual</dt>
+							<dd data-i18n-html="planningManualInstall">Copy <code>skills/planning-dossier/</code> to <code>.claude/skills/</code>.</dd>
+						</dl>
+						<p class="sr-only" id="planning-copy-status" role="status" aria-live="polite"></p>
+					</div>
+				</div>
+
+				<footer class="skill-foot">
+					<span data-i18n="planningTriggerLabel">Invoke manually</span>
+					<p data-i18n="planningTrigger">/planning-dossier</p>
+				</footer>
+			</article>
 		</section>
 
 		<section class="section" id="about" aria-labelledby="about-title">
@@ -663,14 +708,14 @@
 			skip: 'Skip to content',
 			navLabel: 'Main navigation',
 			languageLabel: 'Language',
-			stamp: 'Catalogue · 001',
+			stamp: 'Catalogue · 002',
 			kicker: 'Agent skills · open source',
 			heroTitle: 'Tools for agents who have to <em>deliver.</em>',
 			heroLede: '<strong>Small, installable skills with one clear job.</strong> Ready-made instructions for Claude Code and any agent compatible with the <code>SKILL.md</code> format.',
 			kofiText: 'Buy me a coffee',
 			kofiAria: 'Support on Ko-fi',
-			editionAria: 'One skill available',
-			editionLabel: 'skill published<br>July 2026',
+			editionAria: 'Two skills available',
+			editionLabel: 'skills published<br>July 2026',
 			skillsLabel: 'Skills index',
 			skillsTitle: 'A short collection.<br>Every piece solves something.',
 			available: 'Available',
@@ -690,6 +735,14 @@
 			manualInstall: 'Copy <code>skills/remediation-report/</code> to <code>.claude/skills/</code>.',
 			triggerLabel: 'Trigger it by asking',
 			trigger: '“Prepare an HTML remediation plan from these findings.”',
+			planningFlow: 'decisions → immutable rounds → implementation handoff',
+			planningPurpose: '<strong>Builds an evidence-backed, navigable planning record</strong> with decision frontiers, unresolved threads, and a clear implementation handoff.',
+			planningOutcome1: 'Shows only decisions whose dependencies are resolved, while tracking blocked and deferred threads.',
+			planningOutcome2: 'Publishes immutable rounds, maintains a current index, and autosaves selections locally.',
+			planningOutcome3: 'Exports compact Markdown continuation capsules and a final handoff without changing product code.',
+			planningManualInstall: 'Copy <code>skills/planning-dossier/</code> to <code>.claude/skills/</code>.',
+			planningTriggerLabel: 'Invoke manually',
+			planningTrigger: '/planning-dossier',
 			aboutTitle: 'Behind the repository.',
 			profileAria: 'Professional details to complete',
 			linksAria: 'Professional links',
@@ -701,14 +754,14 @@
 			skip: 'Saltar al contenido',
 			navLabel: 'Navegación principal',
 			languageLabel: 'Idioma',
-			stamp: 'Catálogo · 001',
+			stamp: 'Catálogo · 002',
 			kicker: 'Agent skills · código abierto',
 			heroTitle: 'Herramientas para agentes que tienen que <em>entregar.</em>',
 			heroLede: '<strong>Skills pequeñas, instalables y con una tarea concreta.</strong> Instrucciones listas para Claude Code y cualquier agente compatible con el formato <code>SKILL.md</code>.',
 			kofiText: 'Invítame a un café',
 			kofiAria: 'Apóyame en Ko-fi',
-			editionAria: 'Una skill disponible',
-			editionLabel: 'skill publicada<br>julio de 2026',
+			editionAria: 'Dos skills disponibles',
+			editionLabel: 'skills publicadas<br>julio de 2026',
 			skillsLabel: 'Índice de skills',
 			skillsTitle: 'Una colección breve.<br>Cada pieza resuelve algo.',
 			available: 'Disponible',
@@ -728,6 +781,14 @@
 			manualInstall: 'Copia <code>skills/remediation-report/</code> a <code>.claude/skills/</code>.',
 			triggerLabel: 'Actívala pidiendo',
 			trigger: '“Prepara un plan de corrección HTML con estos findings.”',
+			planningFlow: 'decisiones → rondas inmutables → handoff de implementación',
+			planningPurpose: '<strong>Crea un registro de planificación navegable y respaldado por evidencia</strong> con fronteras de decisión, hilos pendientes y un handoff de implementación claro.',
+			planningOutcome1: 'Muestra solo decisiones con dependencias resueltas y registra los hilos bloqueados o aplazados.',
+			planningOutcome2: 'Publica rondas inmutables, mantiene un índice actual y guarda las selecciones localmente.',
+			planningOutcome3: 'Exporta cápsulas Markdown compactas para continuar y un handoff final sin modificar el código del producto.',
+			planningManualInstall: 'Copia <code>skills/planning-dossier/</code> a <code>.claude/skills/</code>.',
+			planningTriggerLabel: 'Invócala manualmente',
+			planningTrigger: '/planning-dossier',
 			aboutTitle: 'Detrás del repositorio.',
 			profileAria: 'Datos profesionales por completar',
 			linksAria: 'Enlaces profesionales',
@@ -735,7 +796,6 @@
 		}
 	};
 
-	const status = document.querySelector('#copy-status');
 	const description = document.querySelector('meta[name="description"]');
 	let currentLanguage = 'en';
 	const profileImage = document.querySelector('#profile-image');
@@ -880,7 +940,9 @@
 		document.querySelectorAll('[data-lang]').forEach((button) => {
 			button.setAttribute('aria-pressed', String(button.dataset.lang === currentLanguage));
 		});
-		status.textContent = '';
+		document.querySelectorAll('[role="status"]').forEach((element) => {
+			element.textContent = '';
+		});
 		renderProfile();
 
 		if (updateUrl) {
@@ -917,15 +979,17 @@
 		button.addEventListener('click', async () => {
 			const source = document.getElementById(button.dataset.copy);
 			if (!source) return;
+			const statusId = button.getAttribute('aria-describedby');
+			const copyStatus = statusId ? document.getElementById(statusId) : null;
 
 			try {
 				await copyText(source.textContent.trim());
 				button.textContent = translations[currentLanguage].copyDone;
 				button.dataset.state = 'copied';
-				status.textContent = translations[currentLanguage].copyStatus;
+				if (copyStatus) copyStatus.textContent = translations[currentLanguage].copyStatus;
 			} catch {
 				button.textContent = translations[currentLanguage].copyError;
-				status.textContent = translations[currentLanguage].copyFailure;
+				if (copyStatus) copyStatus.textContent = translations[currentLanguage].copyFailure;
 			}
 
 			window.setTimeout(() => {
