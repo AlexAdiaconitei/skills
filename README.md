@@ -24,6 +24,7 @@ Or install manually: copy a folder from `skills/` into your project's `.claude/s
 | Skill | Description |
 |---|---|
 | [`remediation-report`](skills/remediation-report) | Turns review findings (security, code review, audit, tech debt) into a self-contained HTML remediation-plan report styled as an editorial dossier. |
+| [`planning-dossier`](skills/planning-dossier) | Builds a phased, interactive HTML planning dossier with decision frontiers, compact Markdown continuation capsules, and an implementation handoff. |
 
 ### remediation-report
 
@@ -39,6 +40,14 @@ Each report contains:
 Reports are written in the language you work in; the visual identity (warm paper, Fraunces + IBM Plex, severity badges) stays consistent across reports.
 
 Trigger it by asking for a "remediation plan", "findings report" or "plan de corrección" as an HTML report after a review.
+
+### planning-dossier
+
+Creates a navigable planning record for software work in a repository. Each immutable round presents the currently decidable options and accounts for blocked or deferred threads; a mutable `index.html` tracks the complete timeline.
+
+The included Node renderer turns compact JSON into accessible, self-contained Editorial Dossier HTML. Selections autosave locally, and the copy button exports only the decision delta for the next agent. The final round produces a concise implementation handoff without changing product code.
+
+Invoke it manually as `/planning-dossier`.
 
 ## Repository layout
 
