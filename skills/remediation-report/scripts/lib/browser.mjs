@@ -87,6 +87,11 @@ export async function launchBrowser({ chromePath = findChrome(), timeoutMs = 200
   if (process.env.CI && process.platform === 'linux') args.push('--no-sandbox');
   const child = spawn(chromePath, [...args, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
   const exited = new Promise(resolve => child.once('exit', resolve));
+  // Chrome helpers can keep writing the profile briefly after the main process
+  // exits; a leftover temp directory must never fail a check.
+  const cleanup = () => {
+    try { fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }); } catch { /* best effort */ }
+  };
   try {
     const wsUrl = await new Promise((resolve, reject) => {
       let buffer = '';
@@ -105,14 +110,14 @@ export async function launchBrowser({ chromePath = findChrome(), timeoutMs = 200
       async close() {
         try { await Promise.race([cdp.send('Browser.close'), new Promise(r => setTimeout(r, 2000))]); } catch { /* already gone */ }
         cdp.close();
-        if (child.exitCode === null) child.kill();
         await Promise.race([exited, new Promise(r => setTimeout(r, 3000))]);
-        fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+        if (child.exitCode === null) { child.kill(); await Promise.race([exited, new Promise(r => setTimeout(r, 3000))]); }
+        cleanup();
       },
     };
   } catch (error) {
     if (child.exitCode === null) child.kill();
-    fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+    cleanup();
     throw error;
   }
 }
