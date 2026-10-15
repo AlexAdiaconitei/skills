@@ -576,4 +576,4 @@ Los dos archivos fuente son estáticos y de un solo archivo. Estos patrones vien
 
 **Copiar al portapapeles.** `navigator.clipboard` si `window.isSecureContext`, si no textarea oculto + `execCommand('copy')`. Feedback por `data-state` en el botón + anuncio en el live region, reset a los 2s.
 
-**Plantilla con slots** (`TEMPLATE.html`). Comentarios `<!-- SLOT: qué va aquí -->` y bloques repetibles marcados como duplicables. El agente rellena, no rediseña. Buen patrón si el sistema debe generarse por herramienta.
+**Plantilla + renderer** (`templates/*.html` + `scripts/render.mjs` en las skills). El agente escribe JSON validado por un JSON Schema y un renderer determinista lo convierte en HTML sobre una plantilla con marcadores `@@SLOT@@`; el agente nunca toca el HTML. Conteos, índices y totales se calculan, y un `finalize` comprueba la página en Chrome headless antes de publicarla. Es preferible a la plantilla con comentarios `<!-- SLOT -->` que el agente rellena a mano: el diseño no se degrada entre documentos.

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "remediation-report/report.schema.json",
+  "title": "Remediation report input",
+  "description": "Input for `render.mjs finalize`. Text is plain text; `code` and **bold** are the only inline markup. Counts, the tally, the table of contents, total effort, row status and the colophon are computed, never authored. Cross-field rules are checked by the renderer and reported as report/* diagnostics.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "output", "report", "phases", "executionOrder"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "output": { "type": "string", "pattern": "\\.html$", "description": "repository-relative path of the report, e.g. docs/reports/remediation-<topic>.html" },
+    "report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "language", "project", "type", "title", "topic", "date", "scope", "stamp", "verdict"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "description": "stable kebab-case ID; an update must keep it" },
+        "language": { "$ref": "#/$defs/text", "description": "BCP 47 tag such as en or es; languages without a locale file need labels" },
+        "labels": { "type": "object", "additionalProperties": { "type": "string" }, "description": "interface label overrides keyed like locales/en.json" },
+        "project": { "$ref": "#/$defs/text" },
+        "type": { "$ref": "#/$defs/text", "description": "report type for the kicker, e.g. Security review" },
+        "reference": { "$ref": "#/$defs/text", "description": "ADR, PR or issue reference; omit when there is none" },
+        "title": { "$ref": "#/$defs/text", "description": "headline before the emphasized topic, e.g. Remediation plan:" },
+        "topic": { "$ref": "#/$defs/text", "description": "emphasized end of the headline" },
+        "date": { "$ref": "#/$defs/text" },
+        "branch": { "$ref": "#/$defs/text" },
+        "scope": { "$ref": "#/$defs/text", "description": "surface reviewed" },
+        "stamp": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["text", "tone"],
+          "properties": {
+            "text": { "$ref": "#/$defs/text", "description": "urgency context, e.g. Pre-merge · branch" },
+            "tone": { "enum": ["urgent", "info"], "description": "urgent (red) for pre-merge or incidents, info (green) otherwise" }
+          }
+        },
+        "verdict": { "$ref": "#/$defs/text", "description": "2-4 sentences: overall state first, then what blocks, then the rest" }
+      }
+    },
+    "phases": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/phase" } },
+    "executionOrder": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/commit" } }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1 },
+    "textList": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+    "phase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "when", "intro", "findings"],
+      "properties": {
+        "title": { "$ref": "#/$defs/text" },
+        "when": { "$ref": "#/$defs/text", "description": "when it must happen, e.g. Before merge" },
+        "intro": { "$ref": "#/$defs/text" },
+        "findings": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/finding" } }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "severity", "effort", "problem", "files", "plan", "acceptance"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^F-[0-9]{2,}$", "description": "F-01, F-02…" },
+        "title": { "$ref": "#/$defs/text", "description": "the concrete problem, not its category" },
+        "severity": { "enum": ["critical", "medium", "minor"] },
+        "effort": { "type": "string", "pattern": "^~?\\s?[0-9]+(?:[.,][0-9]+)?\\s?(?:min|h)$", "description": "estimate such as ~15 min or ~1.5 h" },
+        "problem": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/text" }, "description": "paragraphs: what happens and why it matters" },
+        "files": { "$ref": "#/$defs/textList", "description": "exact paths, with :line when known" },
+        "decision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["summary", "recommendation"],
+          "properties": {
+            "summary": { "$ref": "#/$defs/text", "description": "the product decision and its options" },
+            "recommendation": { "$ref": "#/$defs/text" }
+          }
+        },
+        "plan": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/text" }, "description": "2-5 concrete steps naming real symbols and values" },
+        "acceptance": { "$ref": "#/$defs/text", "description": "a check runnable as a command, request or concrete inspection" },
+        "resolution": { "$ref": "#/$defs/text", "description": "set only after the fix landed and was verified: what changed and the verification actually run" }
+      }
+    },
+    "commit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "findings", "rationale", "verification"],
+      "properties": {
+        "commit": { "$ref": "#/$defs/text", "description": "e.g. 1 · auth guards" },
+        "findings": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^F-[0-9]{2,}$" } },
+        "rationale": { "$ref": "#/$defs/text", "description": "why these findings share a commit (surface touched, dependencies)" },
+        "verification": { "$ref": "#/$defs/text" }
+      }
+    }
+  }
+}

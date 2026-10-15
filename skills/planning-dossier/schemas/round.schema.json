@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "planning-dossier/round.schema.json",
+  "title": "Planning dossier round input",
+  "description": "Input for `render.mjs finalize`. All text is plain text, never HTML. Cross-field rules (unique IDs, recommendation names an option, round sequence, ledger carry-over, final-round closure) are checked by the renderer and reported as dossier/* diagnostics.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "outputDir", "dossier", "round", "currentState"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "outputDir": { "$ref": "#/$defs/text", "description": "repository-relative dossier directory, e.g. docs/plans/<slug>" },
+    "dossier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "project", "title", "objective", "language", "scope"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug", "description": "stable kebab-case ID; also isolates browser storage" },
+        "project": { "$ref": "#/$defs/text" },
+        "title": { "$ref": "#/$defs/text" },
+        "objective": { "$ref": "#/$defs/text" },
+        "language": { "$ref": "#/$defs/text", "description": "BCP 47 tag such as en or es; languages without a locale file need labels" },
+        "labels": { "type": "object", "additionalProperties": { "type": "string" }, "description": "interface label overrides keyed like locales/en.json" },
+        "scope": { "$ref": "#/$defs/text" },
+        "branch": { "$ref": "#/$defs/text" },
+        "sourceRef": { "$ref": "#/$defs/text" }
+      }
+    },
+    "round": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["number", "slug", "kind", "date", "title", "summary", "status", "evidence", "decisions", "threads", "sections"],
+      "properties": {
+        "number": { "type": "integer", "minimum": 1 },
+        "slug": { "$ref": "#/$defs/slug" },
+        "kind": { "enum": ["round", "final"] },
+        "date": { "$ref": "#/$defs/text" },
+        "title": { "$ref": "#/$defs/text" },
+        "summary": { "$ref": "#/$defs/text" },
+        "status": { "enum": ["framing", "awaiting-decisions", "researching", "ready"] },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } },
+        "decisions": { "type": "array", "items": { "$ref": "#/$defs/decision" } },
+        "threads": { "type": "array", "items": { "$ref": "#/$defs/thread" } },
+        "sections": { "type": "array", "items": { "$ref": "#/$defs/section" } },
+        "finalHandoff": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["title", "instruction", "startWith"],
+          "properties": {
+            "title": { "$ref": "#/$defs/text" },
+            "instruction": { "$ref": "#/$defs/text" },
+            "startWith": { "$ref": "#/$defs/text" }
+          }
+        }
+      },
+      "if": { "properties": { "kind": { "const": "final" } }, "required": ["kind"] },
+      "then": { "required": ["finalHandoff"], "properties": { "decisions": { "maxItems": 0 } } }
+    },
+    "currentState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "summary", "decisions", "threads"],
+      "properties": {
+        "status": { "$ref": "#/$defs/text" },
+        "summary": { "$ref": "#/$defs/text" },
+        "decisions": { "type": "array", "items": { "$ref": "#/$defs/ledgerItem" } },
+        "threads": {
+          "type": "array",
+          "items": { "allOf": [{ "$ref": "#/$defs/ledgerItem" }, { "required": ["criticality"] }] }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1 },
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "description": "lowercase kebab-case" },
+    "itemId": { "type": "string", "pattern": "^[A-Z]+-[0-9]+$", "description": "prefix and number, e.g. D-01 or T-03" },
+    "criticality": { "enum": ["blocker", "material", "watch"] },
+    "textList": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "detail", "refs"],
+      "properties": {
+        "title": { "$ref": "#/$defs/text" },
+        "detail": { "$ref": "#/$defs/text" },
+        "refs": { "$ref": "#/$defs/textList" }
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "summary", "tradeoffs", "surfaces", "reversibility", "complexity", "uncertainty"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "label": { "$ref": "#/$defs/text" },
+        "summary": { "$ref": "#/$defs/text" },
+        "tradeoffs": { "$ref": "#/$defs/textList" },
+        "surfaces": { "$ref": "#/$defs/textList" },
+        "reversibility": { "$ref": "#/$defs/text" },
+        "complexity": { "enum": ["S", "M", "L"] },
+        "uncertainty": { "enum": ["low", "medium", "high"] }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "criticality", "title", "question", "rationale", "mode", "recommendation", "options"],
+      "properties": {
+        "id": { "$ref": "#/$defs/itemId" },
+        "criticality": { "$ref": "#/$defs/criticality" },
+        "title": { "$ref": "#/$defs/text" },
+        "question": { "$ref": "#/$defs/text" },
+        "rationale": { "$ref": "#/$defs/text" },
+        "mode": { "enum": ["single", "multiple"] },
+        "recommendation": { "$ref": "#/$defs/slug", "description": "ID of one of the options; highlighted, never preselected" },
+        "options": { "type": "array", "minItems": 2, "maxItems": 4, "items": { "$ref": "#/$defs/option" } },
+        "notesPrompt": { "$ref": "#/$defs/text" }
+      }
+    },
+    "thread": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "criticality", "title", "detail", "status"],
+      "properties": {
+        "id": { "$ref": "#/$defs/itemId" },
+        "criticality": { "$ref": "#/$defs/criticality" },
+        "title": { "$ref": "#/$defs/text" },
+        "detail": { "$ref": "#/$defs/text" },
+        "status": { "enum": ["open", "blocked", "resolved", "deferred", "discarded"] },
+        "blockedBy": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+        "reason": { "$ref": "#/$defs/text" },
+        "impact": { "$ref": "#/$defs/text" },
+        "reactivation": { "$ref": "#/$defs/text" },
+        "resolution": { "$ref": "#/$defs/text" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "blocked" } }, "required": ["status"] },
+          "then": { "required": ["blockedBy"], "properties": { "blockedBy": { "minItems": 1 } } }
+        },
+        {
+          "if": { "properties": { "status": { "const": "deferred" } }, "required": ["status"] },
+          "then": { "required": ["reason", "impact", "reactivation"] }
+        },
+        {
+          "if": { "properties": { "status": { "enum": ["resolved", "discarded"] } }, "required": ["status"] },
+          "then": { "required": ["resolution"] }
+        }
+      ]
+    },
+    "section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "title", "blocks"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "label": { "$ref": "#/$defs/text" },
+        "title": { "$ref": "#/$defs/text" },
+        "intro": { "$ref": "#/$defs/text" },
+        "blocks": { "type": "array", "items": { "$ref": "#/$defs/block" } }
+      }
+    },
+    "block": {
+      "type": "object",
+      "required": ["type"],
+      "properties": { "type": { "enum": ["prose", "list", "steps", "table", "cards", "code", "flow", "callout"] } },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "prose" } } }, "then": { "additionalProperties": false, "required": ["paragraphs"], "properties": { "type": {}, "paragraphs": { "$ref": "#/$defs/textList" } } } },
+        { "if": { "properties": { "type": { "const": "list" } } }, "then": { "additionalProperties": false, "required": ["title", "items"], "properties": { "type": {}, "title": { "$ref": "#/$defs/text" }, "items": { "$ref": "#/$defs/textList" } } } },
+        { "if": { "properties": { "type": { "const": "steps" } } }, "then": { "additionalProperties": false, "required": ["items"], "properties": { "type": {}, "items": { "$ref": "#/$defs/textList" } } } },
+        {
+          "if": { "properties": { "type": { "const": "table" } } },
+          "then": {
+            "additionalProperties": false,
+            "required": ["columns", "rows"],
+            "properties": {
+              "type": {},
+              "columns": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["key", "label"], "properties": { "key": { "$ref": "#/$defs/text" }, "label": { "$ref": "#/$defs/text" } } } },
+              "rows": { "type": "array", "items": { "type": "object", "additionalProperties": { "type": ["string", "number", "boolean"] } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "cards" } } },
+          "then": {
+            "additionalProperties": false,
+            "required": ["items"],
+            "properties": {
+              "type": {},
+              "items": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["title", "body"], "properties": { "title": { "$ref": "#/$defs/text" }, "body": { "$ref": "#/$defs/text" }, "badge": { "$ref": "#/$defs/text" }, "meta": { "$ref": "#/$defs/textList" } } } }
+            }
+          }
+        },
+        { "if": { "properties": { "type": { "const": "code" } } }, "then": { "additionalProperties": false, "required": ["label", "code"], "properties": { "type": {}, "label": { "$ref": "#/$defs/text" }, "code": { "$ref": "#/$defs/text" } } } },
+        {
+          "if": { "properties": { "type": { "const": "flow" } } },
+          "then": {
+            "additionalProperties": false,
+            "required": ["nodes"],
+            "properties": {
+              "type": {},
+              "nodes": { "type": "array", "minItems": 2, "items": { "type": "object", "additionalProperties": false, "required": ["title", "detail"], "properties": { "title": { "$ref": "#/$defs/text" }, "detail": { "$ref": "#/$defs/text" } } } }
+            }
+          }
+        },
+        { "if": { "properties": { "type": { "const": "callout" } } }, "then": { "additionalProperties": false, "required": ["tone", "title", "body"], "properties": { "type": {}, "tone": { "enum": ["decision", "warning", "success"] }, "title": { "$ref": "#/$defs/text" }, "body": { "$ref": "#/$defs/text" } } } }
+      ]
+    },
+    "ledgerItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "status"],
+      "properties": {
+        "id": { "$ref": "#/$defs/itemId" },
+        "title": { "$ref": "#/$defs/text" },
+        "criticality": { "$ref": "#/$defs/criticality" },
+        "status": { "enum": ["open", "blocked", "decided", "resolved", "deferred", "discarded"] },
+        "outcome": { "type": "string" }
+      },
+      "if": { "properties": { "status": { "enum": ["blocked", "decided", "resolved", "deferred", "discarded"] } }, "required": ["status"] },
+      "then": { "required": ["outcome"], "properties": { "outcome": { "minLength": 1 } } }
+    }
+  }
+}

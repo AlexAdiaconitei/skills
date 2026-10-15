@@ -1,6 +1,6 @@
 # Renderer data contract
 
-Read this file only while preparing renderer input. All user/repository text is plain text; never put HTML in JSON fields.
+Read this file only while preparing renderer input. [`schemas/round.schema.json`](../schemas/round.schema.json) is the exact contract and `finalize` enforces it; this file explains meaning. All user/repository text is plain text; never put HTML in JSON fields.
 
 ## Top level
 
@@ -26,7 +26,8 @@ Read this file only while preparing renderer input. All user/repository text is 
 - `schemaVersion`: exactly `1`.
 - `outputDir`: repository-relative dossier directory. The capsule and generated links use this path.
 - `dossier.id`: stable lowercase slug. It also isolates browser storage.
-- `language`: `en` or `es`; other values use English interface labels while preserving authored content.
+- `language`: BCP 47 tag. `en` and `es` have built-in interface labels; for other languages add `labels` with every key of `locales/en.json` translated, otherwise labels fall back to English (warning `i18n/fallback`).
+- Decision and thread IDs: prefix plus number, such as `D-01` or `T-03`. Every round item must also appear in `currentState`.
 - `branch` and `sourceRef`: optional; omit unknown values rather than inventing them.
 
 ## Round

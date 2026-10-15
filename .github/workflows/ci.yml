@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Shared library copies are in sync
+        run: node scripts/sync-shared.mjs --check
+
+      - name: Renderer contracts (includes the headless browser gate)
+        run: |
+          for test in skills/*/scripts/*.test.mjs; do
+            echo "::group::$test"
+            node "$test"
+            echo "::endgroup::"
+          done

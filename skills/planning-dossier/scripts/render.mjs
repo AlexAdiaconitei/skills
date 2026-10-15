@@ -1,78 +1,32 @@
 #!/usr/bin/env node
+// planning-dossier CLI. Every command prints a JSON receipt; exit code 1 means
+// a gate failed and its diagnostics say what to repair.
+//
+//   finalize <input.json> [--consume] [--no-browser]
+//                                validate → render → verify → browser → publish
+//   validate <input.json>        schema + cross-field rules only
+//   verify <dossier-dir>         static checks of a published dossier
+//   browser-check <dossier-dir>  headless browser checks of index + latest round
+
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { diag, warn, hasErrors, DiagnosticError, runGates, receipt, printReceipt } from './lib/diagnostics.mjs';
+import { compile } from './lib/schema.mjs';
+import { loadLabels } from './lib/i18n.mjs';
+import { esc, safeJson, extractPayload, checkSelfContained, readJsonInput, relativePath } from './lib/html.mjs';
+import { withBrowser, checkLayout, pageErrors } from './lib/browser.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const TEMPLATE_PATH = path.join(HERE, '..', 'templates', 'dossier.html');
+const SKILL_DIR = path.join(HERE, '..');
+const TEMPLATE_PATH = path.join(SKILL_DIR, 'templates', 'dossier.html');
+const LOCALES_DIR = path.join(SKILL_DIR, 'locales');
 const SCHEMA_VERSION = 1;
-const CRITICALITIES = new Set(['blocker', 'material', 'watch']);
-const ROUND_KINDS = new Set(['round', 'final']);
-const ROUND_STATUSES = new Set(['framing', 'awaiting-decisions', 'researching', 'ready']);
-const THREAD_STATUSES = new Set(['open', 'blocked', 'resolved', 'deferred', 'discarded']);
-const LEDGER_STATUSES = new Set(['open', 'blocked', 'decided', 'resolved', 'deferred', 'discarded']);
-const BLOCK_TYPES = new Set(['prose', 'list', 'steps', 'table', 'cards', 'code', 'flow', 'callout']);
+const validateSchema = compile(JSON.parse(fs.readFileSync(path.join(SKILL_DIR, 'schemas', 'round.schema.json'), 'utf8')));
 
-const UI = {
-  en: {
-    skip: 'Skip to content', index: 'Dossier index', previous: 'Previous round', current: 'Current round',
-    round: 'Planning round', final: 'Final plan', branch: 'Branch', scope: 'Scope', source: 'Source', date: 'Date',
-    evidence: 'Evidence', evidenceTitle: 'What the repository establishes', evidenceIntro: 'Observed facts that constrain this planning round.',
-    frontier: 'Decision frontier', frontierTitle: 'Choices ready for review', frontierIntro: 'Recommendations are highlighted, never preselected. Every active item needs an explicit disposition.',
-    threads: 'Loose threads', threadsTitle: 'Accounted-for uncertainty', threadsIntro: 'Open threads need a disposition; blocked threads remain visible until their dependency clears.',
-    recommendation: 'Recommended', reversibility: 'Reversibility', complexity: 'Complexity', uncertainty: 'Uncertainty', surfaces: 'Surfaces',
-    disposition: 'Disposition', chooseDisposition: 'Choose a disposition…', decide: 'Decide now', investigate: 'Investigate next', defer: 'Defer explicitly', discard: 'Discard', resolve: 'Resolve',
-    notes: 'Rationale, constraint, or correction', blockedBy: 'Blocked by', reactivation: 'Reactivation',
-    corrections: 'Cross-cutting corrections', correctionsHelp: 'Add context that affects more than one card.',
-    nextIntent: 'Next intent', continuePlanning: 'Continue planning', continueHelp: 'Apply these decisions and expose the next frontier.', investigateIntent: 'Investigate marked threads', investigateHelp: 'Research before presenting more choices.', consolidate: 'Consolidate final plan', consolidateHelp: 'Allowed only when no material uncertainty remains.',
-    reset: 'Reset', copyMarkdown: 'Copy Markdown', copyHandoff: 'Copy handoff', copied: 'Copied', progress: 'Frontier complete',
-    saved: 'Saved locally.', restored: 'Local draft restored.', saveFailed: 'Local autosave is unavailable.', resetStatus: 'Local draft cleared.',
-    incomplete: 'Complete', ready: 'Ready to copy.', intentMissing: 'next intent', fixFields: 'Complete the highlighted fields.', copiedStatus: 'Markdown copied.', copyFailed: 'Clipboard access failed.',
-    continueTitle: 'Continue planning dossier', decisionsHeading: 'Decisions', threadsHeading: 'Thread dispositions', correctionsHeading: 'Corrections', none: 'None',
-    handoffTitle: 'Implementation handoff', startWith: 'Start with', objective: 'Objective', planningState: 'Planning state', rounds: 'Rounds', decisions: 'Decisions', openThreads: 'Open threads',
-    timeline: 'Timeline', timelineTitle: 'Planning record', timelineIntro: 'Immutable rounds show how the plan changed; the index shows current state.', ledger: 'Current ledger', ledgerTitle: 'Decisions and threads',
-    id: 'ID', item: 'Item', status: 'Status', outcome: 'Outcome', noLedger: 'No ledger items yet.', currentSummary: 'Current state', finalHandoff: 'Handoff', finalHandoffIntro: 'The next agent reads the dossier instead of receiving the plan again.',
-    generated: 'Generated planning artifact', immutable: 'Round is immutable · index carries current state'
-  },
-  es: {
-    skip: 'Saltar al contenido', index: 'Índice del dossier', previous: 'Ronda anterior', current: 'Ronda actual',
-    round: 'Ronda de planificación', final: 'Plan final', branch: 'Rama', scope: 'Alcance', source: 'Fuente', date: 'Fecha',
-    evidence: 'Evidencia', evidenceTitle: 'Lo que establece el repositorio', evidenceIntro: 'Hechos observados que restringen esta ronda de planificación.',
-    frontier: 'Frontera de decisiones', frontierTitle: 'Decisiones listas para revisión', frontierIntro: 'Las recomendaciones se destacan, nunca se preseleccionan. Cada elemento activo necesita una disposición explícita.',
-    threads: 'Hilos sueltos', threadsTitle: 'Incertidumbre contabilizada', threadsIntro: 'Los hilos abiertos requieren disposición; los bloqueados siguen visibles hasta resolver su dependencia.',
-    recommendation: 'Recomendada', reversibility: 'Reversibilidad', complexity: 'Complejidad', uncertainty: 'Incertidumbre', surfaces: 'Superficies',
-    disposition: 'Disposición', chooseDisposition: 'Elige una disposición…', decide: 'Decidir ahora', investigate: 'Investigar después', defer: 'Aplazar explícitamente', discard: 'Descartar', resolve: 'Resolver',
-    notes: 'Justificación, restricción o corrección', blockedBy: 'Bloqueado por', reactivation: 'Reactivación',
-    corrections: 'Correcciones transversales', correctionsHelp: 'Añade contexto que afecte a más de una tarjeta.',
-    nextIntent: 'Siguiente intención', continuePlanning: 'Continuar planificación', continueHelp: 'Aplicar decisiones y exponer la siguiente frontera.', investigateIntent: 'Investigar hilos marcados', investigateHelp: 'Investigar antes de presentar más opciones.', consolidate: 'Consolidar plan final', consolidateHelp: 'Solo si no queda incertidumbre material.',
-    reset: 'Restablecer', copyMarkdown: 'Copiar Markdown', copyHandoff: 'Copiar handoff', copied: 'Copiado', progress: 'Frontera completa',
-    saved: 'Guardado localmente.', restored: 'Borrador local restaurado.', saveFailed: 'El autoguardado local no está disponible.', resetStatus: 'Borrador local eliminado.',
-    incomplete: 'Completa', ready: 'Listo para copiar.', intentMissing: 'siguiente intención', fixFields: 'Completa los campos resaltados.', copiedStatus: 'Markdown copiado.', copyFailed: 'No se pudo acceder al portapapeles.',
-    continueTitle: 'Continuar planning dossier', decisionsHeading: 'Decisiones', threadsHeading: 'Disposición de hilos', correctionsHeading: 'Correcciones', none: 'Ninguno',
-    handoffTitle: 'Handoff de implementación', startWith: 'Empezar por', objective: 'Objetivo', planningState: 'Estado del plan', rounds: 'Rondas', decisions: 'Decisiones', openThreads: 'Hilos abiertos',
-    timeline: 'Timeline', timelineTitle: 'Registro de planificación', timelineIntro: 'Las rondas inmutables muestran cómo cambió el plan; el índice muestra el estado actual.', ledger: 'Registro actual', ledgerTitle: 'Decisiones e hilos',
-    id: 'ID', item: 'Elemento', status: 'Estado', outcome: 'Resultado', noLedger: 'Todavía no hay elementos en el registro.', currentSummary: 'Estado actual', finalHandoff: 'Handoff', finalHandoffIntro: 'El siguiente agente lee el dossier en vez de recibir de nuevo el plan.',
-    generated: 'Artefacto de planificación generado', immutable: 'Ronda inmutable · el índice conserva el estado actual'
-  }
-};
-
-function fail(message) { throw new Error(message); }
-function isObject(value) { return value !== null && typeof value === 'object' && !Array.isArray(value); }
-function needObject(value, label) { if (!isObject(value)) fail(`${label} must be an object`); }
-function needArray(value, label) { if (!Array.isArray(value)) fail(`${label} must be an array`); }
-function needString(value, label) { if (typeof value !== 'string' || !value.trim()) fail(`${label} must be a non-empty string`); }
-function optionalString(value, label) { if (value !== undefined && (typeof value !== 'string' || !value.trim())) fail(`${label} must be omitted or a non-empty string`); }
-function esc(value) { return String(value ?? '').replace(/[&<>'"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[c])); }
-function slug(value, label) { needString(value, label); if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) fail(`${label} must be a lowercase kebab-case slug`); }
 function pad(number) { return String(number).padStart(2, '0'); }
-function normalizedRelative(value) {
-  needString(value, 'outputDir');
-  const normalized = value.replace(/\\/g, '/').replace(/^\.\//, '').replace(/\/$/, '');
-  if (path.isAbsolute(value) || normalized.startsWith('../') || normalized.includes('/../')) fail('outputDir must be repository-relative and cannot traverse upward');
-  return normalized;
-}
-function safeJson(value) { return JSON.stringify(value).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026'); }
 function countOpen(items) { return items.filter(item => item.status === 'open' || item.status === 'blocked').length; }
 function criticalityCounts(round) {
   const counts = { blocker:0, material:0, watch:0 };
@@ -80,127 +34,102 @@ function criticalityCounts(round) {
   round.threads.filter(item => item.status === 'open' || item.status === 'blocked').forEach(item => { counts[item.criticality] += 1; });
   return counts;
 }
+function duplicates(values) { return values.filter((value, index) => values.indexOf(value) !== index); }
 
-function validateOption(option, label) {
-  needObject(option, label);
-  ['id','label','summary','reversibility','complexity','uncertainty'].forEach(key => needString(option[key], `${label}.${key}`));
-  slug(option.id, `${label}.id`);
-  needArray(option.tradeoffs, `${label}.tradeoffs`);
-  needArray(option.surfaces, `${label}.surfaces`);
-  option.tradeoffs.forEach((item, i) => needString(item, `${label}.tradeoffs[${i}]`));
-  option.surfaces.forEach((item, i) => needString(item, `${label}.surfaces[${i}]`));
-  if (!['S','M','L'].includes(option.complexity)) fail(`${label}.complexity must be S, M, or L`);
-  if (!['low','medium','high'].includes(option.uncertainty)) fail(`${label}.uncertainty must be low, medium, or high`);
+// ---------------------------------------------------------------- validation
+
+function readManifest(indexPath) {
+  if (!fs.existsSync(indexPath)) return null;
+  const data = extractPayload(fs.readFileSync(indexPath, 'utf8'), 'planning-data', indexPath);
+  if (!data.manifest) throw new DiagnosticError(diag('dossier/manifest-missing', `${indexPath} has no manifest`, { path: indexPath }));
+  return data.manifest;
 }
 
-function validateDecision(decision, index) {
-  const label = `round.decisions[${index}]`;
-  needObject(decision, label);
-  ['id','title','question','rationale','recommendation'].forEach(key => needString(decision[key], `${label}.${key}`));
-  optionalString(decision.notesPrompt, `${label}.notesPrompt`);
-  if (!CRITICALITIES.has(decision.criticality)) fail(`${label}.criticality is invalid`);
-  if (!['single','multiple'].includes(decision.mode)) fail(`${label}.mode must be single or multiple`);
-  needArray(decision.options, `${label}.options`);
-  if (decision.options.length < 2 || decision.options.length > 4) fail(`${label}.options must contain 2–4 options`);
-  decision.options.forEach((option, optionIndex) => validateOption(option, `${label}.options[${optionIndex}]`));
-  const ids = decision.options.map(option => option.id);
-  if (new Set(ids).size !== ids.length) fail(`${label}.options contains duplicate IDs`);
-  if (!ids.includes(decision.recommendation)) fail(`${label}.recommendation must name an option ID`);
-}
+function semanticChecks(input, manifest) {
+  const out = [];
+  const { round, currentState } = input;
 
-function validateThread(thread, index) {
-  const label = `round.threads[${index}]`;
-  needObject(thread, label);
-  ['id','title','detail'].forEach(key => needString(thread[key], `${label}.${key}`));
-  if (!CRITICALITIES.has(thread.criticality)) fail(`${label}.criticality is invalid`);
-  if (!THREAD_STATUSES.has(thread.status)) fail(`${label}.status is invalid`);
-  if (thread.blockedBy !== undefined) {
-    needArray(thread.blockedBy, `${label}.blockedBy`);
-    thread.blockedBy.forEach((item, i) => needString(item, `${label}.blockedBy[${i}]`));
+  round.decisions.forEach((decision, i) => {
+    const ids = decision.options.map(option => option.id);
+    duplicates(ids).forEach(id => out.push(diag('dossier/duplicate-option', `option ID "${id}" is repeated`, { path: `/round/decisions/${i}/options` })));
+    if (!ids.includes(decision.recommendation)) {
+      out.push(diag('dossier/unknown-recommendation', `recommendation "${decision.recommendation}" is not an option ID`, { path: `/round/decisions/${i}/recommendation`, fix: `Use one of: ${ids.join(', ')}` }));
+    }
+  });
+  duplicates([...round.decisions, ...round.threads].map(item => item.id))
+    .forEach(id => out.push(diag('dossier/duplicate-id', `round decision/thread ID "${id}" is repeated`, { path: '/round' })));
+  duplicates([...currentState.decisions, ...currentState.threads].map(item => item.id))
+    .forEach(id => out.push(diag('dossier/duplicate-id', `currentState ID "${id}" is repeated`, { path: '/currentState' })));
+
+  const known = new Set([...round.decisions, ...round.threads, ...currentState.decisions, ...currentState.threads].map(item => item.id));
+  round.threads.forEach((thread, i) => (thread.blockedBy || []).forEach((ref, j) => {
+    if (!known.has(ref)) out.push(warn('dossier/unknown-dependency', `blockedBy "${ref}" is not a known decision or thread ID`, { path: `/round/threads/${i}/blockedBy/${j}` }));
+  }));
+  const ledgerIds = new Set([...currentState.decisions, ...currentState.threads].map(item => item.id));
+  [...round.decisions, ...round.threads].forEach(item => {
+    if (!ledgerIds.has(item.id)) out.push(diag('dossier/ledger-missing', `${item.id} appears in the round but not in currentState`, { path: '/currentState', fix: `Add ${item.id} to currentState.${item.id.startsWith('T') ? 'threads' : 'decisions'} with its current status.` }));
+  });
+
+  if (!round.evidence.length && !round.decisions.length && !round.threads.length && !round.sections.length) {
+    out.push(diag('dossier/empty-round', 'round has no evidence, decisions, threads or sections', { path: '/round' }));
   }
-  if (thread.status === 'blocked' && (!thread.blockedBy || !thread.blockedBy.length)) fail(`${label}.blockedBy is required for blocked threads`);
-  if (thread.status === 'deferred') {
-    ['reason','impact','reactivation'].forEach(key => needString(thread[key], `${label}.${key}`));
+  if (round.kind === 'final') {
+    const unresolved = [...currentState.decisions, ...currentState.threads].filter(item => item.status === 'open' || item.status === 'blocked');
+    if (unresolved.length) {
+      out.push(diag('dossier/final-unresolved', `final round has unresolved ledger items: ${unresolved.map(item => item.id).join(', ')}`, {
+        path: '/currentState', fix: 'Run another planning round, or decide/defer/discard these items with an outcome.',
+      }));
+    }
   }
-  if (thread.status === 'resolved' || thread.status === 'discarded') needString(thread.resolution, `${label}.resolution`);
+
+  if (manifest) {
+    const previous = manifest.rounds.at(-1);
+    if (manifest.schemaVersion !== SCHEMA_VERSION) out.push(diag('dossier/schema-version', 'existing dossier uses an unsupported schema version', { path: input.outputDir }));
+    if (manifest.dossier.id !== input.dossier.id) out.push(diag('dossier/id-mismatch', `dossier.id must stay "${manifest.dossier.id}"`, { path: '/dossier/id' }));
+    if (manifest.outputDir !== input.outputDir) out.push(diag('dossier/output-mismatch', `outputDir must stay "${manifest.outputDir}"`, { path: '/outputDir' }));
+    if (round.number !== previous.number + 1) out.push(diag('dossier/round-sequence', `round.number must be ${previous.number + 1}`, { path: '/round/number' }));
+    for (const key of ['decisions', 'threads']) {
+      const nextIds = new Set(currentState[key].map(item => item.id));
+      const missing = manifest.current[key].filter(item => !nextIds.has(item.id)).map(item => item.id);
+      if (missing.length) {
+        out.push(diag('dossier/ledger-removed', `currentState.${key} silently removes prior IDs: ${missing.join(', ')}`, {
+          path: `/currentState/${key}`, fix: 'Carry every prior item forward; change its status (discarded, deferred…) instead of deleting it.',
+        }));
+      }
+    }
+  } else if (round.number !== 1) {
+    out.push(diag('dossier/round-sequence', 'a new dossier must start at round 1', { path: '/round/number', fix: `No index.html exists in ${input.outputDir}; check outputDir if this continues a dossier.` }));
+  }
+
+  const roundFile = `round-${pad(round.number)}-${round.slug}.html`;
+  if (fs.existsSync(path.resolve(input.outputDir, roundFile))) {
+    out.push(diag('dossier/round-exists', `${roundFile} already exists; rounds are immutable`, { path: '/round/number', fix: 'Publish the change as the next round instead.' }));
+  }
+  return out;
 }
 
-function validateBlock(block, sectionIndex, blockIndex) {
-  const label = `round.sections[${sectionIndex}].blocks[${blockIndex}]`;
-  needObject(block, label);
-  if (!BLOCK_TYPES.has(block.type)) fail(`${label}.type is invalid`);
-  if (block.type === 'prose') {
-    needArray(block.paragraphs, `${label}.paragraphs`);
-    block.paragraphs.forEach((item, i) => needString(item, `${label}.paragraphs[${i}]`));
-  } else if (block.type === 'list') {
-    needString(block.title, `${label}.title`); needArray(block.items, `${label}.items`); block.items.forEach((item, i) => needString(item, `${label}.items[${i}]`));
-  } else if (block.type === 'steps') {
-    needArray(block.items, `${label}.items`); block.items.forEach((item, i) => needString(item, `${label}.items[${i}]`));
-  } else if (block.type === 'table') {
-    needArray(block.columns, `${label}.columns`); needArray(block.rows, `${label}.rows`);
-    block.columns.forEach((column, i) => { needObject(column, `${label}.columns[${i}]`); needString(column.key, `${label}.columns[${i}].key`); needString(column.label, `${label}.columns[${i}].label`); });
-    block.rows.forEach((row, i) => { needObject(row, `${label}.rows[${i}]`); block.columns.forEach(column => { if (!['string','number','boolean'].includes(typeof row[column.key])) fail(`${label}.rows[${i}].${column.key} must be scalar`); }); });
-  } else if (block.type === 'cards') {
-    needArray(block.items, `${label}.items`);
-    block.items.forEach((item, i) => { needObject(item, `${label}.items[${i}]`); needString(item.title, `${label}.items[${i}].title`); needString(item.body, `${label}.items[${i}].body`); optionalString(item.badge, `${label}.items[${i}].badge`); if (item.meta !== undefined) { needArray(item.meta, `${label}.items[${i}].meta`); item.meta.forEach((meta, j) => needString(meta, `${label}.items[${i}].meta[${j}]`)); } });
-  } else if (block.type === 'code') {
-    needString(block.label, `${label}.label`); needString(block.code, `${label}.code`);
-  } else if (block.type === 'flow') {
-    needArray(block.nodes, `${label}.nodes`); if (block.nodes.length < 2) fail(`${label}.nodes needs at least two nodes`);
-    block.nodes.forEach((node, i) => { needObject(node, `${label}.nodes[${i}]`); needString(node.title, `${label}.nodes[${i}].title`); needString(node.detail, `${label}.nodes[${i}].detail`); });
-  } else if (block.type === 'callout') {
-    if (!['decision','warning','success'].includes(block.tone)) fail(`${label}.tone is invalid`); needString(block.title, `${label}.title`); needString(block.body, `${label}.body`);
-  }
+function prepare(inputPath) {
+  const input = readJsonInput(inputPath);
+  const diagnostics = validateSchema(input);
+  if (hasErrors(diagnostics)) return { diagnostics };
+  input.outputDir = relativePath(input.outputDir, 'outputDir');
+  const { labels, diagnostics: i18n } = loadLabels(LOCALES_DIR, input.dossier.language, input.dossier.labels, '/dossier');
+  diagnostics.push(...i18n);
+  const manifest = readManifest(path.join(path.resolve(input.outputDir), 'index.html'));
+  diagnostics.push(...semanticChecks(input, manifest));
+  return { input, labels, manifest, diagnostics };
 }
 
-function validateInput(input) {
-  needObject(input, 'input');
-  if (input.schemaVersion !== SCHEMA_VERSION) fail(`schemaVersion must be ${SCHEMA_VERSION}`);
-  input.outputDir = normalizedRelative(input.outputDir);
-  needObject(input.dossier, 'dossier');
-  ['id','project','title','objective','language','scope'].forEach(key => needString(input.dossier[key], `dossier.${key}`));
-  slug(input.dossier.id, 'dossier.id');
-  optionalString(input.dossier.branch, 'dossier.branch'); optionalString(input.dossier.sourceRef, 'dossier.sourceRef');
-  needObject(input.round, 'round');
-  if (!Number.isInteger(input.round.number) || input.round.number < 1) fail('round.number must be a positive integer');
-  slug(input.round.slug, 'round.slug');
-  ['date','title','summary','status'].forEach(key => needString(input.round[key], `round.${key}`));
-  if (!ROUND_KINDS.has(input.round.kind)) fail('round.kind is invalid');
-  if (!ROUND_STATUSES.has(input.round.status)) fail('round.status is invalid');
-  ['evidence','decisions','threads','sections'].forEach(key => needArray(input.round[key], `round.${key}`));
-  input.round.evidence.forEach((evidence, index) => { needObject(evidence, `round.evidence[${index}]`); needString(evidence.title, `round.evidence[${index}].title`); needString(evidence.detail, `round.evidence[${index}].detail`); needArray(evidence.refs, `round.evidence[${index}].refs`); evidence.refs.forEach((ref, refIndex) => needString(ref, `round.evidence[${index}].refs[${refIndex}]`)); });
-  input.round.decisions.forEach(validateDecision);
-  input.round.threads.forEach(validateThread);
-  const itemIds = [...input.round.decisions, ...input.round.threads].map(item => item.id);
-  if (new Set(itemIds).size !== itemIds.length) fail('round decision/thread IDs must be unique');
-  input.round.sections.forEach((section, sectionIndex) => { needObject(section, `round.sections[${sectionIndex}]`); slug(section.id, `round.sections[${sectionIndex}].id`); needString(section.label, `round.sections[${sectionIndex}].label`); needString(section.title, `round.sections[${sectionIndex}].title`); optionalString(section.intro, `round.sections[${sectionIndex}].intro`); needArray(section.blocks, `round.sections[${sectionIndex}].blocks`); section.blocks.forEach((block, blockIndex) => validateBlock(block, sectionIndex, blockIndex)); });
-  if (!input.round.evidence.length && !input.round.decisions.length && !input.round.threads.length && !input.round.sections.length) fail('round must contain useful content');
-  needObject(input.currentState, 'currentState');
-  needString(input.currentState.status, 'currentState.status'); needString(input.currentState.summary, 'currentState.summary');
-  needArray(input.currentState.decisions, 'currentState.decisions'); needArray(input.currentState.threads, 'currentState.threads');
-  [...input.currentState.decisions, ...input.currentState.threads].forEach((item, index) => { needObject(item, `currentState item ${index}`); needString(item.id, `currentState item ${index}.id`); needString(item.title, `currentState item ${index}.title`); if (!LEDGER_STATUSES.has(item.status)) fail(`currentState item ${index}.status is invalid`); if (item.status !== 'open') needString(item.outcome, `currentState item ${index}.outcome`); else if (item.outcome === undefined) item.outcome = ''; });
-  input.currentState.threads.forEach((thread, index) => { if (!CRITICALITIES.has(thread.criticality)) fail(`currentState.threads[${index}].criticality is invalid`); });
-  const ledgerIds = [...input.currentState.decisions, ...input.currentState.threads].map(item => item.id);
-  if (new Set(ledgerIds).size !== ledgerIds.length) fail('currentState IDs must be unique');
-  if (input.round.kind === 'final') {
-    if (input.round.decisions.length) fail('final round cannot contain active decisions');
-    const unresolved = [...input.currentState.decisions, ...input.currentState.threads].filter(item => item.status === 'open' || item.status === 'blocked');
-    if (unresolved.length) fail(`final round has unresolved ledger items: ${unresolved.map(item => item.id).join(', ')}`);
-    needObject(input.round.finalHandoff, 'round.finalHandoff');
-    ['title','instruction','startWith'].forEach(key => needString(input.round.finalHandoff[key], `round.finalHandoff.${key}`));
-  }
-  return input;
-}
+// ---------------------------------------------------------------- rendering
 
-function template() { return fs.readFileSync(TEMPLATE_PATH, 'utf8'); }
-function applyTemplate({ lang, title, description, body, data }) {
-  return template()
+function applyTemplate({ lang, title, description, body, data, ui }) {
+  return fs.readFileSync(TEMPLATE_PATH, 'utf8')
     .replaceAll('@@LANG@@', esc(lang))
     .replaceAll('@@TITLE@@', esc(title))
     .replaceAll('@@DESCRIPTION@@', esc(description))
-    .replaceAll('@@SKIP_LABEL@@', esc((UI[lang] || UI.en).skip))
-    .replace('@@BODY@@', body)
-    .replace('@@DATA_JSON@@', safeJson(data));
+    .replaceAll('@@SKIP_LABEL@@', esc(ui.skip))
+    .replace('@@BODY@@', () => body)
+    .replace('@@DATA_JSON@@', () => safeJson(data));
 }
 function badge(criticality, label = criticality) { return `<span class="badge ${esc(criticality)}">${esc(label)}</span>`; }
 function nav(output, previous, ui, currentFile) {
@@ -219,7 +148,7 @@ function masthead(dossier, round, ui, isIndex = false) {
   return `<header class="masthead"><p class="kicker">${esc(dossier.project)} · ${esc(kind)}</p><h1>${emphasized}</h1><span class="stamp">${esc(round.status)} · ${isIndex ? esc(ui.current) : pad(round.number)}</span><p class="lede">${esc(round.summary)}</p>${meta(dossier, round, ui)}</header>`;
 }
 function tally(counts, ui) {
-  return `<div class="tally"><div class="cell blocker"><div class="num">${counts.blocker}</div><div class="lbl">Blocker</div></div><div class="cell material"><div class="num">${counts.material}</div><div class="lbl">Material</div></div><div class="cell watch"><div class="num">${counts.watch}</div><div class="lbl">Watch</div></div></div>`;
+  return `<div class="tally">${['blocker', 'material', 'watch'].map(key => `<div class="cell ${key}"><div class="num">${counts[key]}</div><div class="lbl">${esc(ui[key])}</div></div>`).join('')}</div>`;
 }
 function sectionHead(label, title, intro) {
   return `<div class="section-head"><span class="section-label">${esc(label)}</span><h2>${esc(title)}</h2></div>${intro ? `<p class="section-intro">${esc(intro)}</p>` : ''}`;
@@ -237,7 +166,7 @@ function dispositionSelect(name, id, ui, thread = false) {
   return `<select data-state id="${esc(id)}" name="${esc(name)}"><option value="">${esc(ui.chooseDisposition)}</option><option value="${thread ? 'resolve' : 'decide'}">${esc(thread ? ui.resolve : ui.decide)}</option><option value="investigate">${esc(ui.investigate)}</option><option value="defer">${esc(ui.defer)}</option><option value="discard">${esc(ui.discard)}</option></select>`;
 }
 function renderDecision(decision, ui) {
-  return `<article class="decision-card" data-criticality="${esc(decision.criticality)}"><div class="card-head"><span class="folio" aria-hidden="true">${esc(decision.id.replace(/\D/g,''))}</span><h3>${esc(decision.title)}</h3><div class="card-head-right">${badge(decision.criticality)}</div></div><div class="card-copy"><p class="question">${esc(decision.question)}</p><p class="rationale">${esc(decision.rationale)}</p></div><div class="option-grid">${decision.options.map(option => optionCard(decision, option, ui)).join('')}</div><div class="response"><div class="field"><label for="disp-${esc(decision.id)}">${esc(ui.disposition)}</label>${dispositionSelect(`decision.${decision.id}.disposition`, `disp-${decision.id}`, ui)}</div><div class="field"><label for="note-${esc(decision.id)}">${esc(decision.notesPrompt || ui.notes)}</label><textarea data-state id="note-${esc(decision.id)}" name="decision.${esc(decision.id)}.note"></textarea></div></div></article>`;
+  return `<article class="decision-card" data-criticality="${esc(decision.criticality)}"><div class="card-head"><span class="folio" aria-hidden="true">${esc(decision.id.replace(/\D/g,''))}</span><h3>${esc(decision.title)}</h3><div class="card-head-right">${badge(decision.criticality, ui[decision.criticality])}</div></div><div class="card-copy"><p class="question">${esc(decision.question)}</p><p class="rationale">${esc(decision.rationale)}</p></div><div class="option-grid">${decision.options.map(option => optionCard(decision, option, ui)).join('')}</div><div class="response"><div class="field"><label for="disp-${esc(decision.id)}">${esc(ui.disposition)}</label>${dispositionSelect(`decision.${decision.id}.disposition`, `disp-${decision.id}`, ui)}</div><div class="field"><label for="note-${esc(decision.id)}">${esc(decision.notesPrompt || ui.notes)}</label><textarea data-state id="note-${esc(decision.id)}" name="decision.${esc(decision.id)}.note"></textarea></div></div></article>`;
 }
 function renderDecisions(round, ui) {
   if (!round.decisions.length) return '';
@@ -245,7 +174,7 @@ function renderDecisions(round, ui) {
 }
 function renderThread(thread, ui) {
   const blocked = thread.status === 'blocked';
-  const stateBadge = thread.status === 'resolved' || thread.status === 'discarded' ? badge('done', thread.status) : badge(thread.criticality);
+  const stateBadge = thread.status === 'resolved' || thread.status === 'discarded' ? badge('done', thread.status) : badge(thread.criticality, ui[thread.criticality]);
   const extra = thread.reactivation ? `<p class="blocked-by">${esc(ui.reactivation)} · ${esc(thread.reactivation)}</p>` : '';
   const resolution = thread.resolution ? `<p class="blocked-by">${esc(thread.resolution)}</p>` : '';
   const controls = thread.status === 'open' ? `<div class="response interactive-only"><div class="field"><label for="thread-disp-${esc(thread.id)}">${esc(ui.disposition)}</label>${dispositionSelect(`thread.${thread.id}.disposition`, `thread-disp-${thread.id}`, ui, true)}</div><div class="field"><label for="thread-note-${esc(thread.id)}">${esc(ui.notes)}</label><textarea data-state id="thread-note-${esc(thread.id)}" name="thread.${esc(thread.id)}.note"></textarea></div></div>` : '';
@@ -300,115 +229,195 @@ function renderIndex(data) {
   return `<div class="sheet"><nav class="topnav" aria-label="${esc(ui.timeline)}"><div class="topnav-group"><a href="${esc(currentRound.file)}">${esc(ui.current)} →</a></div><span>${esc(data.outputDir)}/index.html</span></nav><main id="main">${masthead(dossier, pseudoRound, ui, true)}<section class="summary"><p class="summary-copy"><strong>${esc(ui.objective)}.</strong> ${esc(dossier.objective)}</p>${tally(statusCounts, ui)}</section>${timeline}${ledger}</main><footer class="colophon"><span>${esc(dossier.project)} · planning-dossier</span><span>${esc(ui.generated)}</span></footer></div>`;
 }
 
-function extractData(html, file) {
-  const match = html.match(/<script id="planning-data" type="application\/json">([\s\S]*?)<\/script>/);
-  if (!match) fail(`${file} has no planning-data payload`);
-  try { return JSON.parse(match[1]); } catch (error) { fail(`${file} has invalid planning-data: ${error.message}`); }
-}
-function readManifest(indexPath) {
-  if (!fs.existsSync(indexPath)) return null;
-  const data = extractData(fs.readFileSync(indexPath, 'utf8'), indexPath);
-  if (!data.manifest) fail(`${indexPath} has no manifest`);
-  return data.manifest;
-}
-function preserveLedger(previous, next, label) {
-  if (!previous) return;
-  const nextIds = new Set(next.map(item => item.id));
-  const missing = previous.filter(item => !nextIds.has(item.id)).map(item => item.id);
-  if (missing.length) fail(`${label} silently removes prior IDs: ${missing.join(', ')}`);
-}
-
-function renderInput(inputPath, consume) {
-  const absoluteInput = path.resolve(inputPath);
-  const input = validateInput(JSON.parse(fs.readFileSync(absoluteInput, 'utf8')));
-  const outputDir = path.resolve(input.outputDir);
-  const indexPath = path.join(outputDir, 'index.html');
-  const previousManifest = readManifest(indexPath);
-  let rounds = [];
-  let previous = null;
-  if (previousManifest) {
-    if (previousManifest.schemaVersion !== SCHEMA_VERSION) fail('existing dossier schema version is unsupported');
-    if (previousManifest.dossier.id !== input.dossier.id) fail('dossier.id does not match existing index');
-    if (previousManifest.outputDir !== input.outputDir) fail('outputDir does not match existing index');
-    rounds = previousManifest.rounds.slice();
-    previous = rounds.at(-1);
-    if (input.round.number !== previous.number + 1) fail(`round.number must be ${previous.number + 1}`);
-    preserveLedger(previousManifest.current.decisions, input.currentState.decisions, 'currentState.decisions');
-    preserveLedger(previousManifest.current.threads, input.currentState.threads, 'currentState.threads');
-  } else if (input.round.number !== 1) {
-    fail('a new dossier must start at round 1');
-  }
-
+function build({ input, labels: ui, manifest }) {
+  const rounds = manifest ? manifest.rounds.slice() : [];
+  const previous = rounds.at(-1) || null;
   const roundFile = `round-${pad(input.round.number)}-${input.round.slug}.html`;
-  const roundPath = path.join(outputDir, roundFile);
-  if (fs.existsSync(roundPath)) fail(`${roundFile} already exists; rounds are immutable`);
-  fs.mkdirSync(outputDir, { recursive:true });
-
-  const ui = UI[input.dossier.language] || UI.en;
   const round = { ...input.round, file:roundFile };
   const roundRecord = {
     number:round.number, file:roundFile, title:round.title, date:round.date, kind:round.kind,
     status:round.status, summary:round.summary, decisionCount:round.decisions.length, threadCount:round.threads.length
   };
   rounds.push(roundRecord);
-  const manifest = { schemaVersion:SCHEMA_VERSION, outputDir:input.outputDir, dossier:input.dossier, rounds, current:input.currentState };
+  const lang = input.dossier.language;
+  const nextManifest = { schemaVersion:SCHEMA_VERSION, outputDir:input.outputDir, dossier:input.dossier, rounds, current:input.currentState };
   const roundData = { schemaVersion:SCHEMA_VERSION, outputDir:input.outputDir, dossier:input.dossier, round, currentState:input.currentState, ui };
-  const roundHtml = applyTemplate({ lang:input.dossier.language, title:`${round.title} · ${input.dossier.project}`, description:round.summary, body:renderRound(roundData, previous), data:roundData });
-  fs.writeFileSync(roundPath, roundHtml, 'utf8');
-
+  const roundHtml = applyTemplate({ lang, ui, title:`${round.title} · ${input.dossier.project}`, description:round.summary, body:renderRound(roundData, previous), data:roundData });
   const indexRound = { ...roundRecord, decisions:[], threads:[], kind:'index' };
-  const indexData = { schemaVersion:SCHEMA_VERSION, outputDir:input.outputDir, dossier:input.dossier, round:indexRound, manifest, ui };
-  const indexHtml = applyTemplate({ lang:input.dossier.language, title:`${input.dossier.title} · planning dossier`, description:input.currentState.summary, body:renderIndex(indexData), data:indexData });
-  fs.writeFileSync(indexPath, indexHtml, 'utf8');
-
-  if (consume) fs.rmSync(absoluteInput);
-  process.stdout.write(`${JSON.stringify({ index:path.relative(process.cwd(), indexPath), round:path.relative(process.cwd(), roundPath), number:round.number, kind:round.kind })}\n`);
+  const indexData = { schemaVersion:SCHEMA_VERSION, outputDir:input.outputDir, dossier:input.dossier, round:indexRound, manifest:nextManifest, ui };
+  const indexHtml = applyTemplate({ lang, ui, title:`${input.dossier.title} · planning dossier`, description:input.currentState.summary, body:renderIndex(indexData), data:indexData });
+  return { roundFile, roundHtml, indexHtml };
 }
 
-function verifyDossier(directory) {
+// Copies the published dossier plus the new files into a temp directory, so
+// verification and browser checks run on the exact result before publishing.
+function stage(outputDir, built) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'planning-dossier-'));
+  if (fs.existsSync(outputDir)) {
+    for (const file of fs.readdirSync(outputDir)) if (file.endsWith('.html')) fs.copyFileSync(path.join(outputDir, file), path.join(dir, file));
+  }
+  fs.writeFileSync(path.join(dir, built.roundFile), built.roundHtml, 'utf8');
+  fs.writeFileSync(path.join(dir, 'index.html'), built.indexHtml, 'utf8');
+  return dir;
+}
+
+// ---------------------------------------------------------------- checks
+
+function verifyDir(directory) {
   const outputDir = path.resolve(directory);
   const indexPath = path.join(outputDir, 'index.html');
-  if (!fs.existsSync(indexPath)) fail('index.html does not exist');
+  if (!fs.existsSync(indexPath)) return [diag('verify/index-missing', 'index.html does not exist', { path: directory })];
   const indexHtml = fs.readFileSync(indexPath, 'utf8');
-  const indexData = extractData(indexHtml, indexPath);
-  const manifest = indexData.manifest;
-  needObject(manifest, 'index manifest');
-  needArray(manifest.rounds, 'index manifest.rounds');
-  if (!manifest.rounds.length) fail('index manifest has no rounds');
-  const errors = [];
-  const files = [{ name:'index.html', html:indexHtml, data:indexData }];
+  const manifest = extractPayload(indexHtml, 'planning-data', 'index.html').manifest;
+  if (!manifest?.rounds?.length) return [diag('verify/manifest-empty', 'index manifest has no rounds', { path: 'index.html' })];
+  const out = [];
+  const files = [{ name:'index.html', html:indexHtml }];
   manifest.rounds.forEach((round, index) => {
-    if (round.number !== index + 1) errors.push(`round sequence breaks at ${round.file}`);
+    if (round.number !== index + 1) out.push(diag('verify/round-sequence', `round sequence breaks at ${round.file}`, { path: round.file }));
     const roundPath = path.join(outputDir, round.file);
-    if (!fs.existsSync(roundPath)) { errors.push(`missing ${round.file}`); return; }
+    if (!fs.existsSync(roundPath)) { out.push(diag('verify/round-missing', `missing ${round.file}`, { path: round.file })); return; }
     const html = fs.readFileSync(roundPath, 'utf8');
-    let data;
-    try { data = extractData(html, roundPath); } catch (error) { errors.push(error.message); return; }
-    if (data.round.number !== round.number || data.round.file !== round.file) errors.push(`payload mismatch in ${round.file}`);
-    files.push({ name:round.file, html, data });
+    try {
+      const data = extractPayload(html, 'planning-data', round.file);
+      if (data.round.number !== round.number || data.round.file !== round.file) out.push(diag('verify/payload-mismatch', `payload mismatch in ${round.file}`, { path: round.file }));
+    } catch (error) { out.push(...(error.diagnostics || [diag('verify/payload', error.message, { path: round.file })])); }
+    files.push({ name:round.file, html });
   });
-  files.forEach(file => {
-    if (/@@(?:LANG|TITLE|DESCRIPTION|SKIP_LABEL|BODY|DATA_JSON)@@/.test(file.html)) errors.push(`unreplaced template slot in ${file.name}`);
-    if (/<(?:script|img|iframe)\b[^>]*(?:src)=['"]https?:/i.test(file.html)) errors.push(`remote executable/media source in ${file.name}`);
-    const remoteLinks = [...file.html.matchAll(/<link\b[^>]*href=['"](https?:[^'"]+)['"]/gi)].map(match => match[1]);
-    remoteLinks.filter(url => !/^https:\/\/fonts\.(?:googleapis|gstatic)\.com/.test(url)).forEach(url => errors.push(`unexpected remote link in ${file.name}: ${url}`));
-    if (/@import|url\s*\(\s*['"]?https?:/i.test(file.html)) errors.push(`remote CSS dependency in ${file.name}`);
-  });
-  if (errors.length) fail(`verification failed:\n- ${errors.join('\n- ')}`);
-  process.stdout.write(`${JSON.stringify({ ok:true, directory:path.relative(process.cwd(), outputDir), rounds:manifest.rounds.length, files:files.map(file => file.name) })}\n`);
+  files.forEach(file => out.push(...checkSelfContained(file.html, file.name, /@@(?:LANG|TITLE|DESCRIPTION|SKIP_LABEL|BODY|DATA_JSON)@@/)));
+  return out;
 }
 
-function usage() {
-  process.stderr.write('Usage:\n  node render.mjs --input <round.json> [--consume]\n  node render.mjs --verify <dossier-dir>\n');
+// Runs inside the page: answers every item, then checks validation, autosave
+// and the Markdown capsule through the template's window.__planningDossier hook.
+async function fillRound() {
+  const api = window.__planningDossier;
+  if (!api) return { problems: ['test hook window.__planningDossier is missing from the template'] };
+  const data = JSON.parse(document.getElementById('planning-data').textContent);
+  const form = document.getElementById('planning-form');
+  const problems = [];
+  const fire = el => { el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); };
+  for (const el of form.querySelectorAll('[data-state]')) if (!el.labels || !el.labels.length) problems.push(`control ${el.name} has no label`);
+  for (const d of data.round.decisions) {
+    form.querySelector(`input[name="decision.${d.id}.option"][value="${d.recommendation}"]`).click();
+    const select = form.elements[`decision.${d.id}.disposition`];
+    select.value = 'decide'; fire(select);
+  }
+  for (const t of data.round.threads.filter(t => t.status === 'open')) {
+    const select = form.elements[`thread.${t.id}.disposition`];
+    select.value = 'resolve'; fire(select);
+    const note = form.elements[`thread.${t.id}.note`];
+    note.value = 'browser-check note'; fire(note);
+  }
+  const intent = form.querySelector('input[name="intent"][value="continue"]');
+  if (intent) intent.click();
+  await new Promise(r => setTimeout(r, 300));
+  const result = api.validate(false);
+  if (!result.valid) problems.push('form stays incomplete after every item has a disposition');
+  if (document.getElementById('copy-markdown').disabled) problems.push('copy button stays disabled on a complete form');
+  if (form.querySelector('[data-state]')) {
+    let saved = null;
+    try { saved = localStorage.getItem(api.storageKey); } catch { /* reported below */ }
+    if (!saved) problems.push('autosave wrote nothing to localStorage');
+  }
+  const markdown = api.buildMarkdown(result);
+  for (const d of data.round.decisions) {
+    if (!markdown.includes(d.id) || !markdown.includes('`' + d.recommendation + '`')) problems.push(`Markdown capsule misses decision ${d.id}`);
+  }
+  if (data.round.kind === 'final' && !markdown.includes(data.round.finalHandoff.instruction)) problems.push('handoff Markdown misses the final instruction');
+  return { problems };
+}
+
+async function checkRestoreAndReset() {
+  const api = window.__planningDossier;
+  const data = JSON.parse(document.getElementById('planning-data').textContent);
+  const form = document.getElementById('planning-form');
+  const problems = [];
+  for (const d of data.round.decisions) {
+    if (!form.querySelector(`input[name="decision.${d.id}.option"][value="${d.recommendation}"]`).checked) problems.push(`selection for ${d.id} is not restored after reload`);
+    if (form.elements[`decision.${d.id}.disposition`].value !== 'decide') problems.push(`disposition for ${d.id} is not restored after reload`);
+  }
+  document.getElementById('reset-state').click();
+  let left = null;
+  try { left = localStorage.getItem(api.storageKey); } catch { /* storage unavailable */ }
+  if (left) problems.push('reset leaves the draft in localStorage');
+  if (form.querySelector('input[data-state]:checked')) problems.push('reset leaves selections checked');
+  return problems;
+}
+
+function hiddenWhenPrinting() {
+  return [...document.querySelectorAll('.topnav, .dispatch, .interactive-only')]
+    .filter(el => getComputedStyle(el).display !== 'none')
+    .map(el => el.className);
+}
+
+async function browserCheck(dir, roundFile) {
+  return withBrowser(async open => {
+    const out = [];
+    const index = await open(path.join(dir, 'index.html'));
+    out.push(...await checkLayout(index, 'index.html'), ...pageErrors(index, 'index.html'));
+
+    const page = await open(path.join(dir, roundFile));
+    out.push(...await checkLayout(page, roundFile));
+    const filled = await page.evaluate(`(${fillRound})()`);
+    filled.problems.forEach(p => out.push(diag('browser/interaction', p, { path: roundFile, fix: 'A template or renderer bug, not an input problem.' })));
+    if (!filled.problems.length) {
+      await page.reload();
+      (await page.evaluate(`(${checkRestoreAndReset})()`)).forEach(p => out.push(diag('browser/persistence', p, { path: roundFile })));
+    }
+    await page.media('print');
+    (await page.evaluate(`(${hiddenWhenPrinting})()`)).forEach(cls => out.push(diag('browser/print', `.${cls.split(' ').join('.')} is visible in print`, { path: roundFile })));
+    await page.media('');
+    out.push(...pageErrors(page, roundFile));
+    return out;
+  });
+}
+
+// ---------------------------------------------------------------- commands
+
+const rel = file => path.relative(process.cwd(), file).replace(/\\/g, '/');
+
+async function finalize(inputPath, { consume, browser }) {
+  let prepared, built, stageDir;
+  const outputs = {};
+  const result = await runGates([
+    { name: 'validate', run: () => { prepared = prepare(inputPath); return { diagnostics: prepared.diagnostics }; } },
+    { name: 'render', run: () => {
+      built = build(prepared);
+      stageDir = stage(path.resolve(prepared.input.outputDir), built);
+    } },
+    { name: 'verify', run: () => ({ diagnostics: verifyDir(stageDir) }) },
+    { name: 'browser', run: () => (browser ? browserCheck(stageDir, built.roundFile) : { status: 'skipped', diagnostics: [warn('browser/disabled', '--no-browser was passed; the page was not opened')] }) },
+    { name: 'publish', run: () => {
+      const outputDir = path.resolve(prepared.input.outputDir);
+      fs.mkdirSync(outputDir, { recursive: true });
+      fs.writeFileSync(path.join(outputDir, built.roundFile), built.roundHtml, 'utf8');
+      fs.writeFileSync(path.join(outputDir, 'index.html'), built.indexHtml, 'utf8');
+      if (consume) fs.rmSync(path.resolve(inputPath));
+      Object.assign(outputs, { index: rel(path.join(outputDir, 'index.html')), round: rel(path.join(outputDir, built.roundFile)), number: prepared.input.round.number, kind: prepared.input.round.kind });
+    } },
+  ]);
+  if (stageDir) fs.rmSync(stageDir, { recursive: true, force: true, maxRetries: 5 });
+  return receipt('planning-dossier', 'finalize', result, outputs);
+}
+
+async function main(args) {
+  const [command, target] = args;
+  const flags = new Set(args.slice(2));
+  if (command === 'finalize' && target) return finalize(target, { consume: flags.has('--consume'), browser: !flags.has('--no-browser') });
+  if (command === 'validate' && target) {
+    return receipt('planning-dossier', 'validate', await runGates([{ name: 'validate', run: () => ({ diagnostics: prepare(target).diagnostics }) }]));
+  }
+  if (command === 'verify' && target) {
+    return receipt('planning-dossier', 'verify', await runGates([{ name: 'verify', run: () => ({ diagnostics: verifyDir(target) }) }]));
+  }
+  if (command === 'browser-check' && target) {
+    const latest = () => extractPayload(fs.readFileSync(path.join(target, 'index.html'), 'utf8'), 'planning-data', 'index.html').manifest.rounds.at(-1).file;
+    return receipt('planning-dossier', 'browser-check', await runGates([{ name: 'browser', run: () => browserCheck(path.resolve(target), latest()) }]));
+  }
+  process.stderr.write('Usage:\n  node render.mjs finalize <input.json> [--consume] [--no-browser]\n  node render.mjs validate <input.json>\n  node render.mjs verify <dossier-dir>\n  node render.mjs browser-check <dossier-dir>\n');
   process.exitCode = 2;
+  return null;
 }
 
-try {
-  const args = process.argv.slice(2);
-  if (args[0] === '--input' && args[1]) renderInput(args[1], args.includes('--consume'));
-  else if (args[0] === '--verify' && args[1]) verifyDossier(args[1]);
-  else usage();
-} catch (error) {
-  process.stderr.write(`planning-dossier: ${error.message}\n`);
-  process.exitCode = 1;
-}
+const result = await main(process.argv.slice(2));
+if (result) printReceipt(result);
