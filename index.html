@@ -318,6 +318,38 @@
 	}
 	.skill-link::after { content: '↗'; }
 	.install-note { margin-bottom: 14px; font-size: 13px; color: var(--ink-faint); }
+
+	/* Third-party skills */
+	.ext-intro { max-width: 70ch; margin-top: 22px; font-size: 15px; color: var(--ink-soft); }
+	.ext-group { margin-top: 38px; }
+	.ext-list { list-style: none; border-top: 1.5px solid var(--ink); }
+	.ext-list li {
+		display: grid;
+		grid-template-columns: minmax(170px, .8fr) minmax(0, 1.4fr) minmax(0, 1.5fr);
+		gap: 20px;
+		align-items: baseline;
+		padding: 16px 4px;
+		border-bottom: 1px dotted var(--line-strong);
+	}
+	.ext-name a {
+		font-family: var(--display);
+		font-size: 19px;
+		font-weight: 800;
+		color: var(--ink);
+		text-decoration: none;
+	}
+	.ext-name a:hover { color: var(--accent); }
+	.ext-name span { display: block; margin-top: 2px; font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+	.ext-desc { font-size: 13.5px; color: var(--ink-soft); }
+	.ext-list code, .ext-intro code {
+		padding: 2px 6px;
+		font-family: var(--mono);
+		font-size: 11.5px;
+		background: var(--paper-2);
+		border: 1px solid var(--line);
+		border-radius: 4px;
+		overflow-wrap: anywhere;
+	}
 	.command {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) auto;
@@ -500,6 +532,7 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.masthead, .section, .colophon { animation: rise .58s cubic-bezier(.2, .7, .2, 1) both; }
 		.section { animation-delay: .1s; }
+		#third-party { animation-delay: .14s; }
 		#about { animation-delay: .18s; }
 		.colophon { animation-delay: .24s; }
 		.copy-button { transition: color .16s ease, background-color .16s ease, border-color .16s ease, transform .16s ease; }
@@ -521,6 +554,7 @@
 		.skill-head { grid-template-columns: 60px 1fr; }
 		.skill-head .status { grid-column: 2; justify-self: start; }
 		.skill-copy { border-right: 0; border-bottom: 1px solid var(--line); }
+		.ext-list li { grid-template-columns: 1fr; gap: 6px; }
 		.about-photo { width: 92px; height: 110px; }
 		.about-marker { font-size: 36px; }
 	}
@@ -546,6 +580,7 @@
 			<div class="top-actions">
 				<nav class="topnav" aria-label="Main navigation" data-i18n-aria="navLabel">
 					<a href="#skills">Skills</a>
+					<a href="#third-party" data-i18n="navThird">Third-party</a>
 					<a href="#about">About</a>
 					<a href="https://github.com/AlexAdiaconitei/skills">GitHub ↗</a>
 				</nav>
@@ -594,9 +629,9 @@
 						<p class="eyebrow" data-i18n="purposeLabel">What it does</p>
 						<p data-i18n-html="purpose"><strong>Turns security reviews, code reviews, audits, and technical-debt findings</strong> into a self-contained HTML remediation plan, ordered by urgency and ready to share.</p>
 						<ul class="outcomes">
-							<li data-i18n="outcome1">Prioritizes findings and groups them into executable phases.</li>
-							<li data-i18n="outcome2">Includes files, steps, effort estimates, and verifiable criteria.</li>
-							<li data-i18n="outcome3">Delivers an editorial dossier as a single HTML file.</li>
+							<li data-i18n="outcome1">Prioritizes findings into executable phases with files, steps, effort and verifiable criteria.</li>
+							<li data-i18n="outcome2">Renders from schema-validated JSON and checks the page in a headless browser before publishing.</li>
+							<li data-i18n="outcome3">Updates in place after fixes: resolved findings, applied commits and totals are recomputed.</li>
 						</ul>
 						<a class="skill-link" href="https://github.com/AlexAdiaconitei/skills/tree/main/skills/remediation-report" data-i18n="viewSkill">View skill files</a>
 					</div>
@@ -640,7 +675,7 @@
 						<p data-i18n-html="planningPurpose"><strong>Builds an evidence-backed, navigable planning record</strong> with decision frontiers, unresolved threads, and a clear implementation handoff.</p>
 						<ul class="outcomes">
 							<li data-i18n="planningOutcome1">Shows only decisions whose dependencies are resolved, while tracking blocked and deferred threads.</li>
-							<li data-i18n="planningOutcome2">Publishes immutable rounds, maintains a current index, and autosaves selections locally.</li>
+							<li data-i18n="planningOutcome2">Exercises each round in a headless browser, then publishes it immutably next to a current index; selections autosave locally.</li>
 							<li data-i18n="planningOutcome3">Exports compact Markdown continuation capsules and a final handoff without changing product code.</li>
 						</ul>
 						<a class="skill-link" href="https://github.com/AlexAdiaconitei/skills/tree/main/skills/planning-dossier" data-i18n="viewSkill">View skill files</a>
@@ -668,6 +703,66 @@
 					<p data-i18n="planningTrigger">/planning-dossier</p>
 				</footer>
 			</article>
+		</section>
+
+		<section class="section" id="third-party" aria-labelledby="third-title">
+			<div class="section-head">
+				<p class="section-label" data-i18n="thirdLabel">Third-party</p>
+				<h2 id="third-title" data-i18n-html="thirdTitle">Good work by others.<br>Credited, not rewritten.</h2>
+			</div>
+			<p class="ext-intro" data-i18n-html="thirdIntro"></p>
+
+			<div class="ext-group">
+				<p class="eyebrow" data-i18n="mirroredLabel">Mirrored in this repository</p>
+				<ul class="ext-list">
+					<li>
+						<p class="ext-name"><a href="https://github.com/github/awesome-copilot/tree/main/skills/legacy-circuit-mockups">legacy-circuit-mockups</a><span>GitHub · awesome-copilot</span></p>
+						<p class="ext-desc" data-i18n="extCircuit"></p>
+						<p><code>npx skills add AlexAdiaconitei/skills --skill legacy-circuit-mockups</code></p>
+					</li>
+					<li>
+						<p class="ext-name"><a href="https://github.com/cursor/plugins/tree/main/pstack/skills/unslop">unslop</a><span>Lauren Tan · cursor/plugins</span></p>
+						<p class="ext-desc" data-i18n="extUnslop"></p>
+						<p><code>npx skills add AlexAdiaconitei/skills --skill unslop</code></p>
+					</li>
+					<li>
+						<p class="ext-name"><a href="https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs">grill-with-docs</a><span>Matt Pocock</span></p>
+						<p class="ext-desc" data-i18n="extGrillDocs"></p>
+						<p><code>npx skills add AlexAdiaconitei/skills --skill grill-with-docs</code></p>
+					</li>
+					<li>
+						<p class="ext-name"><a href="https://github.com/mattpocock/skills/tree/main/skills/productivity/grill-me">grill-me</a><span>Matt Pocock</span></p>
+						<p class="ext-desc" data-i18n="extGrillMe"></p>
+						<p><code>npx skills add AlexAdiaconitei/skills --skill grill-me</code></p>
+					</li>
+					<li>
+						<p class="ext-name"><a href="https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling">grilling</a><span>Matt Pocock</span></p>
+						<p class="ext-desc" data-i18n="extGrilling"></p>
+						<p><code>npx skills add AlexAdiaconitei/skills --skill grilling</code></p>
+					</li>
+				</ul>
+			</div>
+
+			<div class="ext-group">
+				<p class="eyebrow" data-i18n="recommendedLabel">Recommended, install from the source</p>
+				<ul class="ext-list">
+					<li>
+						<p class="ext-name"><a href="https://github.com/tt-a1i/archify">archify</a><span>tt-a1i</span></p>
+						<p class="ext-desc" data-i18n="extArchify"></p>
+						<p><code>npx skills add tt-a1i/archify</code></p>
+					</li>
+					<li>
+						<p class="ext-name"><a href="https://www.tasteskill.dev/docs">design-taste-frontend</a><span>Leon Lin · taste-skill</span></p>
+						<p class="ext-desc" data-i18n="extTaste"></p>
+						<p><code>npx skills add Leonxlnx/taste-skill --skill design-taste-frontend</code></p>
+					</li>
+					<li>
+						<p class="ext-name"><a href="https://github.com/github/awesome-copilot/tree/main/skills/anti-ui-slop">anti-ui-slop</a><span>UIZZE · awesome-copilot</span></p>
+						<p class="ext-desc" data-i18n="extAntiSlop"></p>
+						<p><code>npx skills add github/awesome-copilot --skill anti-ui-slop</code></p>
+					</li>
+				</ul>
+			</div>
 		</section>
 
 		<section class="section" id="about" aria-labelledby="about-title">
@@ -721,9 +816,9 @@
 			available: 'Available',
 			purposeLabel: 'What it does',
 			purpose: '<strong>Turns security reviews, code reviews, audits, and technical-debt findings</strong> into a self-contained HTML remediation plan, ordered by urgency and ready to share.',
-			outcome1: 'Prioritizes findings and groups them into executable phases.',
-			outcome2: 'Includes files, steps, effort estimates, and verifiable criteria.',
-			outcome3: 'Delivers an editorial dossier as a single HTML file.',
+			outcome1: 'Prioritizes findings into executable phases with files, steps, effort and verifiable criteria.',
+			outcome2: 'Renders from schema-validated JSON and checks the page in a headless browser before publishing.',
+			outcome3: 'Updates in place after fixes: resolved findings, applied commits and totals are recomputed.',
 			viewSkill: 'View skill files',
 			installation: 'Installation',
 			installNote: 'Install this skill in the current project with the <code>skills</code> CLI:',
@@ -738,11 +833,25 @@
 			planningFlow: 'decisions → immutable rounds → implementation handoff',
 			planningPurpose: '<strong>Builds an evidence-backed, navigable planning record</strong> with decision frontiers, unresolved threads, and a clear implementation handoff.',
 			planningOutcome1: 'Shows only decisions whose dependencies are resolved, while tracking blocked and deferred threads.',
-			planningOutcome2: 'Publishes immutable rounds, maintains a current index, and autosaves selections locally.',
+			planningOutcome2: 'Exercises each round in a headless browser, then publishes it immutably next to a current index; selections autosave locally.',
 			planningOutcome3: 'Exports compact Markdown continuation capsules and a final handoff without changing product code.',
 			planningManualInstall: 'Copy <code>skills/planning-dossier/</code> to <code>.claude/skills/</code>.',
 			planningTriggerLabel: 'Invoke manually',
 			planningTrigger: '/planning-dossier',
+			navThird: 'Third-party',
+			thirdLabel: 'Third-party',
+			thirdTitle: 'Good work by others.<br>Credited, not rewritten.',
+			thirdIntro: 'Mirrored skills keep their original license and an <code>UPSTREAM.md</code> with the exact source commit; a weekly job pulls upstream changes. Recommended skills are installed from their own repositories.',
+			mirroredLabel: 'Mirrored in this repository',
+			recommendedLabel: 'Recommended, install from the source',
+			extCircuit: 'Breadboard mockups and retro-computer schematics drawn on HTML5 Canvas: 6502, 555 timers, EEPROMs, LCDs.',
+			extUnslop: 'Cuts AI tells from any writing.',
+			extGrillDocs: 'A relentless interview that sharpens a plan or design and writes ADRs and a glossary as it goes.',
+			extGrillMe: 'A relentless interview to sharpen a plan or design.',
+			extGrilling: 'Stress-tests a plan, decision or idea by grilling you about it.',
+			extArchify: 'Validated architecture, workflow, sequence, ERD and other diagrams as interactive HTML.',
+			extTaste: 'Reads the design brief first, then steers frontends away from generic AI-generated patterns.',
+			extAntiSlop: 'Grounds UI work in real web and iOS screens, with a design contract and a finish gate. Relies on the UIZZE service.',
 			aboutTitle: 'Behind the repository.',
 			profileAria: 'Professional details to complete',
 			linksAria: 'Professional links',
@@ -767,9 +876,9 @@
 			available: 'Disponible',
 			purposeLabel: 'Para qué sirve',
 			purpose: 'Convierte los hallazgos de una revisión de <strong>seguridad, código, auditoría o deuda técnica</strong> en un plan de corrección HTML autocontenido, ordenado por urgencia y listo para compartir.',
-			outcome1: 'Prioriza findings y los agrupa en fases ejecutables.',
-			outcome2: 'Incluye archivos, pasos, esfuerzo y criterios verificables.',
-			outcome3: 'Entrega un dossier editorial en un único archivo HTML.',
+			outcome1: 'Prioriza los hallazgos en fases ejecutables con archivos, pasos, esfuerzo y criterios verificables.',
+			outcome2: 'Se genera desde JSON validado por schema y comprueba la página en un navegador headless antes de publicarla.',
+			outcome3: 'Se actualiza tras las correcciones: hallazgos resueltos, commits aplicados y totales se recalculan.',
 			viewSkill: 'Ver archivos de la skill',
 			installation: 'Instalación',
 			installNote: 'Instala esta skill en el proyecto actual con la CLI de <code>skills</code>:',
@@ -784,11 +893,25 @@
 			planningFlow: 'decisiones → rondas inmutables → handoff de implementación',
 			planningPurpose: '<strong>Crea un registro de planificación navegable y respaldado por evidencia</strong> con fronteras de decisión, hilos pendientes y un handoff de implementación claro.',
 			planningOutcome1: 'Muestra solo decisiones con dependencias resueltas y registra los hilos bloqueados o aplazados.',
-			planningOutcome2: 'Publica rondas inmutables, mantiene un índice actual y guarda las selecciones localmente.',
+			planningOutcome2: 'Prueba cada ronda en un navegador headless y la publica inmutable junto a un índice actual; las selecciones se guardan localmente.',
 			planningOutcome3: 'Exporta cápsulas Markdown compactas para continuar y un handoff final sin modificar el código del producto.',
 			planningManualInstall: 'Copia <code>skills/planning-dossier/</code> a <code>.claude/skills/</code>.',
 			planningTriggerLabel: 'Invócala manualmente',
 			planningTrigger: '/planning-dossier',
+			navThird: 'Terceros',
+			thirdLabel: 'De terceros',
+			thirdTitle: 'Buen trabajo ajeno.<br>Con crédito, sin reescribir.',
+			thirdIntro: 'Las skills copiadas conservan su licencia original y un <code>UPSTREAM.md</code> con el commit exacto de origen; un job semanal trae los cambios del upstream. Las recomendadas se instalan desde su propio repositorio.',
+			mirroredLabel: 'Copiadas en este repositorio',
+			recommendedLabel: 'Recomendadas, instalar desde el origen',
+			extCircuit: 'Mockups de protoboard y esquemas de ordenadores retro dibujados en HTML5 Canvas: 6502, temporizadores 555, EEPROM, LCD.',
+			extUnslop: 'Elimina los rastros de IA de cualquier texto.',
+			extGrillDocs: 'Una entrevista implacable que afina un plan o diseño y va escribiendo ADRs y un glosario.',
+			extGrillMe: 'Una entrevista implacable para afinar un plan o diseño.',
+			extGrilling: 'Pone a prueba un plan, decisión o idea sometiéndote a un interrogatorio.',
+			extArchify: 'Diagramas validados de arquitectura, flujos, secuencias, ERD y más, como HTML interactivo.',
+			extTaste: 'Lee primero el brief de diseño y aleja los frontends de los patrones genéricos generados por IA.',
+			extAntiSlop: 'Basa el trabajo de UI en pantallas reales web e iOS, con un contrato de diseño y una puerta final. Depende del servicio UIZZE.',
 			aboutTitle: 'Detrás del repositorio.',
 			profileAria: 'Datos profesionales por completar',
 			linksAria: 'Enlaces profesionales',
