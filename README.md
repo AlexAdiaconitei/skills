@@ -67,11 +67,13 @@ To add one, append an entry to [`vendor.json`](vendor.json) (`name`, `repo`, `re
 
 ### Recommended, not mirrored
 
-Too large to mirror (a full CLI with renderers and a browser test harness); install it from its own repository.
+Third-party skills worth installing alongside these, straight from their own repositories.
 
 | Skill | Author | Install |
 |---|---|---|
 | [archify](https://github.com/tt-a1i/archify): validated architecture, workflow, sequence, ERD and other diagrams as interactive HTML | tt-a1i | `npx skills add tt-a1i/archify` |
+| [design-taste-frontend](https://www.tasteskill.dev/docs) ([repo](https://github.com/Leonxlnx/taste-skill)): reads the design brief first, then steers frontends away from generic AI-generated patterns | Leon Lin | `npx skills add Leonxlnx/taste-skill --skill design-taste-frontend` |
+| [anti-ui-slop](https://github.com/github/awesome-copilot/tree/main/skills/anti-ui-slop): grounds UI work in real web and iOS screens from UIZZE, with a design contract and a finish gate | UIZZE, via github/awesome-copilot | `npx skills add github/awesome-copilot --skill anti-ui-slop` |
 
 ## Repository layout
 
