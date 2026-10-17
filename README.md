@@ -2,6 +2,10 @@
 
 Agent skills by [@AlexAdiaconitei](https://github.com/AlexAdiaconitei) for [Claude Code](https://claude.com/claude-code) and other agents that support the [SKILL.md](https://agentskills.io) format.
 
+<p>
+  <a href="https://ko-fi.com/K3Q5236GOO"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi"></a>
+</p>
+
 ## Installation
 
 Install with the [`skills`](https://github.com/vercel-labs/skills) CLI:
@@ -91,6 +95,26 @@ scripts/
 New skills are added as folders under `skills/`. Each folder is self-contained and installable on its own.
 
 Renderer skills share code through `shared/`. A skill opts in by having a `scripts/lib/` folder; `node scripts/sync-shared.mjs` writes generated copies there so the skill still installs on its own. Edit `shared/`, never the copies; CI fails when they drift and runs every `skills/*/scripts/*.test.mjs`, including the headless browser gate.
+
+## About Me
+
+<img src="https://github.com/AlexAdiaconitei.png?size=160" width="80" align="left" alt="Alex Adiaconitei">
+
+**Alex Adiaconitei**
+
+Software engineer specialized in backend development with Java and Spring Boot, comfortable working with JavaScript and Python. I enjoy building personal projects to keep learning, with a growing interest in infrastructure.
+
+<br clear="left">
+
+- Backend Software Engineer
+- Java, Spring Boot, JavaScript, Python
+- Remote
+
+<p>
+  <a href="https://github.com/AlexAdiaconitei"><img src="https://img.shields.io/badge/GitHub-AlexAdiaconitei-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"></a>
+  <a href="https://www.linkedin.com/in/alexadiaconitei/"><img src="https://img.shields.io/badge/LinkedIn-Alex%20Adiaconitei-0A66C2?style=for-the-badge&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik01LjM0IDcuNzJIMS4xNVYyMWg0LjE5VjcuNzJaTTMuMjUgMWEyLjQzIDIuNDMgMCAxIDAgMCA0Ljg2IDIuNDMgMi40MyAwIDAgMCAwLTQuODZaTTIxLjg1IDEzLjM5YzAtNC0yLjE0LTUuODYtNS01Ljg2YTQuMzEgNC4zMSAwIDAgMC0zLjkxIDIuMTVWNy43Mkg4Ljc1VjIxaDQuMTl2LTYuNThjMC0xLjc0LjMzLTMuNDIgMi40OC0zLjQyIDIuMTIgMCAyLjE1IDEuOTggMi4xNSAzLjUzVjIxaDQuMjh2LTcuNjFaIi8%2BPC9zdmc%2B" alt="LinkedIn"></a>
+  <a href="https://ko-fi.com/K3Q5236GOO"><img src="https://img.shields.io/badge/Ko--fi-Support%20me-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white" alt="Ko-fi"></a>
+</p>
 
 ## License
 
