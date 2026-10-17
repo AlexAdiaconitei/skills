@@ -29,7 +29,7 @@
   "applied": "Aplicado",
   "partial": "Parcial",
   "pending": "Pendiente",
-  "colophonReview": "Solo revisión — sin cambios en el código",
-  "colophonPartial": "Corrección en curso — {resolved}/{total} hallazgos resueltos",
-  "colophonDone": "Corrección aplicada — informe actualizado"
+  "colophonReview": "Solo revisión. Sin cambios en el código",
+  "colophonPartial": "Corrección en curso. {resolved}/{total} hallazgos resueltos",
+  "colophonDone": "Corrección aplicada. Informe actualizado"
 }

@@ -1,6 +1,6 @@
 # Renderer data contract
 
-Read this file only while preparing renderer input. [`schemas/round.schema.json`](../schemas/round.schema.json) is the exact contract and `finalize` enforces it; this file explains meaning. All user/repository text is plain text; never put HTML in JSON fields.
+Read this file only while you prepare renderer input. [`schemas/round.schema.json`](../schemas/round.schema.json) is the exact contract, and `finalize` enforces it. This file explains what the fields mean. All text from the user or the repository is plain text. Never put HTML in JSON fields.
 
 ## Top level
 
@@ -24,11 +24,11 @@ Read this file only while preparing renderer input. [`schemas/round.schema.json`
 ```
 
 - `schemaVersion`: exactly `1`.
-- `outputDir`: repository-relative dossier directory. The capsule and generated links use this path.
-- `dossier.id`: stable lowercase slug. It also isolates browser storage.
-- `language`: BCP 47 tag. `en` and `es` have built-in interface labels; for other languages add `labels` with every key of `locales/en.json` translated, otherwise labels fall back to English (warning `i18n/fallback`).
-- Decision and thread IDs: prefix plus number, such as `D-01` or `T-03`. Every round item must also appear in `currentState`.
-- `branch` and `sourceRef`: optional; omit unknown values rather than inventing them.
+- `outputDir`: the dossier directory, relative to the repository. The capsule and generated links use this path.
+- `dossier.id`: a lowercase slug that never changes. It also keys the browser storage, so two dossiers never share saved answers.
+- `language`: a BCP 47 tag. `en` and `es` have built-in interface labels. For another language, add `labels` with every key of `locales/en.json` translated. Missing labels fall back to English with the warning `i18n/fallback`.
+- Decision and thread IDs are a prefix plus a number, such as `D-01` or `T-03`. Every item in the round must also appear in `currentState`.
+- `branch` and `sourceRef` are optional. Leave out values you do not know instead of inventing them.
 
 ## Round
 
@@ -48,11 +48,11 @@ Read this file only while preparing renderer input. [`schemas/round.schema.json`
 }
 ```
 
-- `number`: positive, sequential integer. Existing numbers and filenames are immutable.
+- `number`: a positive integer, one more than the previous round. Never change an existing number or filename.
 - `kind`: `round` or `final`.
 - `status`: `framing`, `awaiting-decisions`, `researching`, or `ready`.
-- `evidence`, `decisions`, `threads`, and `sections` may be empty arrays, but the round must contain useful content in at least one of them.
-- A `final` round must have no active decisions, no open `blocker`/`material` threads, and must include `finalHandoff`.
+- `evidence`, `decisions`, `threads` and `sections` may be empty arrays, but at least one of them must have content.
+- A `final` round must include `finalHandoff` and have no active decisions and no open `blocker` or `material` threads.
 
 ### Evidence
 
@@ -64,7 +64,7 @@ Read this file only while preparing renderer input. [`schemas/round.schema.json`
 }
 ```
 
-Use exact paths, line numbers, symbols, routes, commands, issues, or documentation references when known.
+Give exact paths, line numbers, symbols, routes, commands, issues or documentation references when you know them.
 
 ### Decisions
 
@@ -95,8 +95,8 @@ Use exact paths, line numbers, symbols, routes, commands, issues, or documentati
 
 - `criticality`: `blocker`, `material`, or `watch`.
 - `mode`: `single` or `multiple`.
-- `recommendation`: one option ID. It is highlighted, never selected.
-- Supply 2–4 distinct options. Every option needs all fields shown; arrays may be empty only when truly inapplicable.
+- `recommendation`: one option ID. The page highlights it but never selects it.
+- Give 2 to 4 distinct options. Every option needs all the fields shown. An array may be empty only when it does not apply.
 
 ### Threads
 
@@ -113,9 +113,9 @@ Use exact paths, line numbers, symbols, routes, commands, issues, or documentati
 ```
 
 - `status`: `open`, `blocked`, `resolved`, `deferred`, or `discarded`.
-- Open threads are interactive and require a disposition. Blocked threads are visible but disabled.
+- The user must choose a disposition for each open thread. Blocked threads appear on the page but are disabled.
 - Deferred threads require `reason`, `impact`, and `reactivation`.
-- Resolved/discarded threads require a concise `resolution`.
+- Resolved and discarded threads require a short `resolution`.
 
 ### Sections and blocks
 
@@ -135,8 +135,8 @@ Supported blocks:
 ```
 
 - `tone`: `decision`, `warning`, or `success`.
-- Tables must use matching column keys and scalar row values.
-- `flow` is intentionally linear. Use a table or prose for non-linear relationships rather than forcing a misleading diagram.
+- Row keys must match the column keys, and row values must be scalars.
+- `flow` draws a straight line of steps. For anything that branches or loops, use a table or prose.
 
 ### Final handoff
 
@@ -144,7 +144,7 @@ Supported blocks:
 {
   "title": "Implementation handoff",
   "instruction": "Read the final dossier, implement in phase order, and verify every acceptance criterion.",
-  "startWith": "Phase 01 — schema and API contract"
+  "startWith": "Phase 01: schema and API contract"
 }
 ```
 
@@ -152,7 +152,7 @@ Supported blocks:
 
 ## Current state
 
-The index is a compact ledger, not a copy of the round:
+The index holds a short ledger, not a copy of the round:
 
 ```json
 {
@@ -167,12 +167,12 @@ The index is a compact ledger, not a copy of the round:
 }
 ```
 
-Decision/thread `status`: `open`, `blocked`, `decided`, `resolved`, `deferred`, or `discarded`. `outcome` is required for every non-open state.
+A ledger item's `status` is `open`, `blocked`, `decided`, `resolved`, `deferred` or `discarded`. Every status except `open` requires an `outcome`.
 
 ## Continuation invariants
 
-- Preserve dossier ID and output directory.
+- Keep the dossier ID and output directory.
 - Increment the last manifest round by exactly one.
-- Carry every prior ledger item forward; update it, never silently remove it.
-- Add new IDs monotonically; never reuse an ID for a different meaning.
-- The round file is a historical snapshot. Only `index.html` changes later.
+- Carry every earlier ledger item forward. Update it, never drop it.
+- Number new IDs upward from the highest one used. Never reuse an ID for something else.
+- A round file records the state at that round. Only `index.html` changes later.

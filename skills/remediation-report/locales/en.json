@@ -29,7 +29,7 @@
   "applied": "Applied",
   "partial": "Partial",
   "pending": "Pending",
-  "colophonReview": "Review only — no code changes applied",
-  "colophonPartial": "Remediation in progress — {resolved}/{total} findings resolved",
-  "colophonDone": "Remediation applied — report updated"
+  "colophonReview": "Review only. No code changes applied",
+  "colophonPartial": "Remediation in progress. {resolved}/{total} findings resolved",
+  "colophonDone": "Remediation applied. Report updated"
 }

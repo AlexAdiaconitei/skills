@@ -1,10 +1,10 @@
 # Loose-thread lenses
 
-Read this file only during repository research. Apply every lens that can change scope, architecture, execution order, acceptance, rollout, or reversibility. Record a concrete finding or an explicit not-applicable reason; do not turn the checklist itself into dossier content.
+Read this file only while you research the repository. Apply every lens that can change scope, architecture, execution order, acceptance, rollout or reversibility. For each one, record a concrete finding or the reason it does not apply. Do not copy the checklist itself into the dossier.
 
 ## Problem and boundary
 
-- User-visible outcome and current failure/opportunity.
+- The outcome the user sees, and what fails or is missing today.
 - In-scope and out-of-scope behavior.
 - Actors, permissions, tenancy, and ownership boundaries.
 - Existing behavior that must remain invariant.
@@ -20,11 +20,11 @@ Read this file only during repository research. Apply every lens that can change
 
 ## Contracts and data
 
-- API/request/response/event compatibility.
+- Compatibility of APIs, requests, responses and events.
 - Data model, migrations, backfill, defaults, nullability, indexes, retention, and deletion.
 - Ordering, idempotency, retries, concurrency, transactions, and partial failure.
 - Serialization, versioning, cache invalidation, and stale clients.
-- Import/export and external integration contracts.
+- Import, export and external integration contracts.
 
 ## Quality attributes
 
@@ -48,11 +48,11 @@ Read this file only during repository research. Apply every lens that can change
 - Existing tests that cover the contract and missing tests only where a new contract is introduced.
 - Smoke scenario that exercises the real changed path.
 - Failure, boundary, precedence, and transition cases.
-- Manual/visual checks that automation cannot establish.
+- Manual or visual checks that automated tests cannot cover.
 
 ## Closure test
 
-Research is complete only when:
+Research is done only when:
 
 - every affected surface has an owner in the proposed plan;
 - every dependency is ordered or explicitly parallel;

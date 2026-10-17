@@ -115,7 +115,7 @@ try {
   html = fs.readFileSync(output, 'utf8');
   assert.match(html, /<th>Estado<\/th>/);
   assert.match(html, /Parcial/);
-  assert.match(html, /Corrección en curso — 1\/3/);
+  assert.match(html, /Corrección en curso\. 1\/3/);
   assert.match(html, /`npm test -- auth` passes\.|<code>npm test -- auth<\/code> passes\./);
 
   result = run('verify', output);

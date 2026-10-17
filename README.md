@@ -28,7 +28,7 @@ Or install manually: copy a folder from `skills/` into your project's `.claude/s
 
 ### remediation-report
 
-Generates a polished, single-file HTML report from the findings of any review. The report is a deliverable document — no code is changed.
+Generates a single-file HTML report from the findings of any review. The report is a document to hand over, and generating it changes no code.
 
 Each report contains:
 
