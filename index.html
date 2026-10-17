@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#f6f2ea">
 <title>Adiaconitei Skills · tools for agents</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="about-card.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -421,88 +422,22 @@
 	}
 	.skill-foot p { font-size: 13px; color: var(--ink-soft); }
 
-	/* About placeholder */
-	.about-grid {
-		display: grid;
-		grid-template-columns: 150px 1fr;
-		gap: 28px;
-		padding: 32px 0 0;
-	}
-	.about-photo {
-		width: 120px;
-		height: 144px;
-		display: grid;
-		overflow: hidden;
-		background: var(--accent-soft);
-		border: 1.5px solid var(--accent);
+	/* Author card (author-profile skill), themed with this site's tokens */
+	.about-card {
+		--about-line: var(--line-strong);
+		--about-line-hot: var(--ink);
+		--about-bg: var(--card);
+		--about-chip: var(--paper-2);
+		--about-text: var(--ink);
+		--about-muted: var(--ink-soft);
+		--about-accent: var(--accent);
+		--about-shadow: 4px 4px 0 rgb(27 24 18 / .08);
+		--about-display: var(--display);
+		--about-mono: var(--mono);
 		border-radius: 8px;
-		box-shadow: 4px 4px 0 rgb(27 24 18 / .08);
-		transform: rotate(-2deg);
+		overflow: hidden;
 	}
-	.about-photo > * { grid-area: 1 / 1; }
-	.about-photo img { width: 100%; height: 100%; display: block; object-fit: cover; }
-	.about-marker {
-		display: grid;
-		place-items: center;
-		font-family: var(--display);
-		font-size: 46px;
-		font-weight: 900;
-		color: var(--accent);
-	}
-	.about-marker[hidden] { display: none; }
-	.about-copy { max-width: 690px; }
-	.about-copy h3 { font-family: var(--display); font-size: 25px; font-weight: 800; }
-	.about-copy p { margin-top: 10px; font-size: 15px; color: var(--ink-soft); }
-	.placeholder {
-		padding: 2px 5px;
-		font-family: var(--mono);
-		font-size: .86em;
-		color: var(--critical);
-		background: var(--critical-bg);
-		border-radius: 3px;
-	}
-	.profile-facts {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 10px;
-		margin-top: 18px;
-		list-style: none;
-	}
-	.profile-facts li {
-		padding: 6px 10px;
-		font-family: var(--mono);
-		font-size: 10px;
-		letter-spacing: .06em;
-		color: var(--ink-faint);
-		text-transform: uppercase;
-		border: 1px solid var(--line-strong);
-		border-radius: 5px;
-	}
-	.profile-links {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 10px;
-		margin-top: 14px;
-		list-style: none;
-	}
-	.profile-links a {
-		display: inline-flex;
-		align-items: center;
-		gap: 8px;
-		padding: 8px 12px;
-		font-family: var(--mono);
-		font-size: 11px;
-		font-weight: 600;
-		letter-spacing: .04em;
-		color: var(--paper);
-		text-decoration: none;
-		background: var(--accent);
-		border: 1.5px solid var(--accent);
-		border-radius: 6px;
-		box-shadow: 2px 2px 0 rgb(27 24 18 / .14);
-	}
-	.profile-links a:hover { background: var(--ink); border-color: var(--ink); }
-	.profile-link-icon { width: 16px; height: 16px; flex: 0 0 auto; fill: currentColor; }
+	.about-photo-wrap::after { background: linear-gradient(180deg, transparent 70%, rgb(27 24 18 / .28)); }
 
 	.colophon {
 		display: flex;
@@ -551,13 +486,11 @@
 		.hero-bottom, .skill-body { grid-template-columns: 1fr; }
 		.edition { justify-self: start; }
 		.section { padding-top: 64px; }
-		.section-head, .about-grid { grid-template-columns: 1fr; gap: 10px; }
+		.section-head { grid-template-columns: 1fr; gap: 10px; }
 		.skill-head { grid-template-columns: 60px 1fr; }
 		.skill-head .status { grid-column: 2; justify-self: start; }
 		.skill-copy { border-right: 0; border-bottom: 1px solid var(--line); }
 		.ext-list li { grid-template-columns: 1fr; gap: 6px; }
-		.about-photo { width: 92px; height: 110px; }
-		.about-marker { font-size: 36px; }
 	}
 
 	@media (max-width: 460px) {
@@ -771,27 +704,31 @@
 				<p class="section-label">About</p>
 				<h2 id="about-title" data-i18n="aboutTitle">Behind the repository.</h2>
 			</div>
-			<div class="about-grid">
-				<figure class="about-photo">
-					<img id="profile-image" src="./alex.webp" alt="Alex Adiaconitei" width="512" height="512">
-					<span class="about-marker" id="profile-initials" aria-hidden="true" hidden>AA</span>
-				</figure>
-				<div class="about-copy">
-					<h3 id="profile-name">Alex Adiaconitei</h3>
-					<p><span class="placeholder" id="profile-bio">[Write a 2–3 line professional introduction here.]</span></p>
-					<ul class="profile-facts" id="profile-facts" aria-label="Professional details to complete" data-i18n-aria="profileAria">
-						<li>[Role / specialty]</li>
-						<li>[Main technologies]</li>
-						<li>[Location or remote]</li>
-					</ul>
-					<ul class="profile-links" id="profile-links" aria-label="Professional links" data-i18n-aria="linksAria"></ul>
+			<article class="about-card" data-about-card data-src="about.json" aria-live="polite">
+				<div class="about-photo-wrap">
+					<img src="alex.webp" alt="Alex Adiaconitei" class="about-photo" width="688" height="917" loading="lazy">
 				</div>
-			</div>
+				<div class="about-content">
+					<p class="about-kicker">Creator</p>
+					<h3>Alex Adiaconitei</h3>
+					<p class="about-bio">Software engineer specialized in backend development with Java and Spring Boot, comfortable working with JavaScript and Python. I enjoy building personal projects to keep learning, with a growing interest in infrastructure.</p>
+					<ul class="about-facts">
+						<li>Backend Software Engineer</li>
+						<li>Java, Spring Boot, JavaScript, Python</li>
+						<li>Remote</li>
+					</ul>
+					<div class="about-links">
+						<a href="https://github.com/AlexAdiaconitei" target="_blank" rel="noreferrer">GitHub</a>
+						<a href="https://www.linkedin.com/in/alexadiaconitei/" target="_blank" rel="noreferrer">LinkedIn</a>
+						<a href="https://ko-fi.com/K3Q5236GOO" target="_blank" rel="noreferrer">Ko-fi</a>
+					</div>
+				</div>
+			</article>
 		</section>
 	</main>
 
 	<footer class="colophon">
-		<span>Adiaconitei Skills · MIT License</span>
+		<span>Adiaconitei Skills · MIT License · <span data-i18n="builtBy">Built by</span> <a href="https://github.com/AlexAdiaconitei">Alex Adiaconitei</a></span>
 		<a href="https://github.com/AlexAdiaconitei/skills" data-i18n="source">Source code on GitHub ↗</a>
 	</footer>
 </div>
@@ -854,8 +791,7 @@
 			extTaste: 'Reads the design brief first, then steers frontends away from generic AI-generated patterns.',
 			extAntiSlop: 'Bases UI work on real web and iOS screens, with a design contract and a final check. Needs the UIZZE service.',
 			aboutTitle: 'Behind the repository.',
-			profileAria: 'Professional details to complete',
-			linksAria: 'Professional links',
+			builtBy: 'Built by',
 			source: 'Source code on GitHub ↗'
 		},
 		es: {
@@ -914,130 +850,13 @@
 			extTaste: 'Lee primero el brief de diseño y aleja los frontends de los patrones genéricos generados por IA.',
 			extAntiSlop: 'Basa el trabajo de UI en pantallas reales web e iOS, con un contrato de diseño y una comprobación final. Depende del servicio UIZZE.',
 			aboutTitle: 'Detrás del repositorio.',
-			profileAria: 'Datos profesionales por completar',
-			linksAria: 'Enlaces profesionales',
+			builtBy: 'Hecho por',
 			source: 'Código fuente en GitHub ↗'
 		}
 	};
 
 	const description = document.querySelector('meta[name="description"]');
 	let currentLanguage = 'en';
-	const profileImage = document.querySelector('#profile-image');
-	const profileImageFallback = document.querySelector('#profile-initials');
-	const showProfileImage = () => {
-		profileImage.hidden = false;
-		profileImageFallback.hidden = true;
-	};
-	const showProfileImageFallback = () => {
-		profileImage.hidden = true;
-		profileImageFallback.hidden = false;
-	};
-	profileImage.addEventListener('load', showProfileImage);
-	profileImage.addEventListener('error', showProfileImageFallback);
-	if (profileImage.complete) {
-		if (profileImage.naturalWidth > 0) showProfileImage();
-		else showProfileImageFallback();
-	}
-	const fallbackProfile = {
-		name: 'Alex Adiaconitei',
-		initials: 'AA',
-		bio: {
-			en: '[Write a 2–3 line professional introduction here.]',
-			es: '[Escribe aquí una presentación profesional de 2–3 líneas.]'
-		},
-		facts: {
-			en: ['[Role / specialty]', '[Main technologies]', '[Location or remote]'],
-			es: ['[Rol / especialidad]', '[Tecnologías principales]', '[Ciudad o remoto]']
-		},
-		links: []
-	};
-	let profile = fallbackProfile;
-
-	function localize(value) {
-		if (typeof value === 'string') return value;
-		return value?.[currentLanguage] ?? value?.en ?? '';
-	}
-	const linkIcons = {
-		github: 'M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.835 2.809 1.305 3.495.998.108-.776.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23a11.5 11.5 0 0 1 3.003-.404c1.02.005 2.045.138 3.003.404 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22v3.293c0 .319.21.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12',
-		linkedin: 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124zM6.814 20.452H3.861V9h2.953v11.452z',
-		kofi: 'M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 7.324-.022 11.822c.164 2.424 2.586 2.672 2.586 2.672s8.267-.023 11.966-.049c2.438-.426 2.683-2.566 2.658-3.734 4.352.24 7.422-2.831 6.649-6.916zm-11.062 3.511c-1.246 1.453-4.011 3.976-4.011 3.976s-.121.119-.31.023c-.076-.057-.108-.09-.108-.09-.443-.441-3.368-3.049-4.034-3.954-.709-.965-1.041-2.7-.091-3.71.951-1.01 3.005-1.086 4.363.407 0 0 1.565-1.782 3.468-.963 1.904.82 1.832 3.011.723 4.311zm6.173.478c-.928.116-1.682.028-1.682.028V7.284h1.77s1.971.551 1.971 2.638c0 1.913-.985 2.667-2.059 3.015z'
-	};
-
-	function createLinkIcon(name) {
-		const pathData = linkIcons[typeof name === 'string' ? name.toLowerCase() : ''];
-		if (!pathData) return null;
-
-		const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-		const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-		svg.setAttribute('viewBox', '0 0 24 24');
-		svg.setAttribute('aria-hidden', 'true');
-		svg.setAttribute('focusable', 'false');
-		svg.classList.add('profile-link-icon');
-		path.setAttribute('d', pathData);
-		svg.appendChild(path);
-		return svg;
-	}
-
-	function renderProfile() {
-		const name = typeof profile.name === 'string' && profile.name.trim() ? profile.name : fallbackProfile.name;
-		const initials = typeof profile.initials === 'string' && profile.initials.trim() ? profile.initials : fallbackProfile.initials;
-		const bio = localize(profile.bio) || localize(fallbackProfile.bio);
-		const configuredFacts = profile.facts?.[currentLanguage] ?? profile.facts?.en;
-		const facts = Array.isArray(configuredFacts) ? configuredFacts : fallbackProfile.facts[currentLanguage];
-		const links = Array.isArray(profile.links) ? profile.links : [];
-
-		document.querySelector('#profile-name').textContent = name;
-		document.querySelector('#profile-initials').textContent = initials;
-		profileImage.alt = name;
-		const bioElement = document.querySelector('#profile-bio');
-		bioElement.textContent = bio;
-		bioElement.classList.toggle('placeholder', bio.trim().startsWith('['));
-
-		const factsList = document.querySelector('#profile-facts');
-		factsList.replaceChildren();
-		facts.forEach((fact) => {
-			const entry = document.createElement('li');
-			entry.textContent = fact;
-			factsList.appendChild(entry);
-		});
-
-		const linksList = document.querySelector('#profile-links');
-		linksList.replaceChildren();
-		links.forEach((item) => {
-			if (!item || typeof item !== 'object') return;
-			const label = localize(item.label);
-			try {
-				const url = new URL(item.url);
-				if (!['http:', 'https:', 'mailto:'].includes(url.protocol)) return;
-				const entry = document.createElement('li');
-				const link = document.createElement('a');
-				const icon = createLinkIcon(item.icon);
-				link.href = url.href;
-				link.rel = 'noopener';
-				if (icon) link.appendChild(icon);
-				link.append(label);
-				entry.appendChild(link);
-				linksList.appendChild(entry);
-			} catch {
-				return;
-			}
-		});
-		linksList.hidden = linksList.children.length === 0;
-	}
-
-	async function loadProfile() {
-		try {
-			const response = await fetch('./about.json', { cache: 'no-store' });
-			if (!response.ok) throw new Error(`Profile request failed: ${response.status}`);
-			const loadedProfile = await response.json();
-			if (!loadedProfile || typeof loadedProfile !== 'object') throw new Error('Invalid profile data');
-			profile = loadedProfile;
-		} catch {
-			profile = fallbackProfile;
-		}
-		renderProfile();
-	}
-
 	function setLanguage(language, updateUrl = true) {
 		currentLanguage = language === 'es' ? 'es' : 'en';
 		const messages = translations[currentLanguage];
@@ -1067,7 +886,6 @@
 		document.querySelectorAll('[role="status"]').forEach((element) => {
 			element.textContent = '';
 		});
-		renderProfile();
 
 		if (updateUrl) {
 			const url = new URL(window.location.href);
@@ -1125,7 +943,7 @@
 
 	const requestedLanguage = new URLSearchParams(window.location.search).get('lang');
 	setLanguage(requestedLanguage === 'es' ? 'es' : 'en', false);
-	loadProfile();
 </script>
+<script src="about-card.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,123 @@
+/* author-profile: the card from the Ping Tester landing. Every colour and font falls back to the
+   site's own tokens when they exist (--line, --panel, --text, --muted, --blue, --mono, --display);
+   override the --about-* variables on .about-card to match a site that names them differently. */
+.about-card {
+	--about-line: var(--line, #26384b);
+	--about-line-hot: var(--line-hot, #3b5872);
+	--about-bg: var(--panel, #101c29);
+	--about-chip: var(--ink-soft, #0b1722);
+	--about-text: var(--text, #edf5fb);
+	--about-muted: var(--muted, #8da2b5);
+	--about-accent: var(--blue, #58adff);
+	--about-shadow: var(--shadow, 0 26px 80px rgb(0 0 0 / 0.32));
+	--about-display: var(--display, system-ui, sans-serif);
+	--about-mono: var(--mono, ui-monospace, 'SFMono-Regular', Consolas, monospace);
+
+	margin-top: 2.2rem;
+	display: grid;
+	grid-template-columns: minmax(240px, 360px) 1fr;
+	border: 1px solid var(--about-line);
+	background: var(--about-bg);
+	box-shadow: var(--about-shadow);
+	color: var(--about-text);
+}
+.about-photo-wrap {
+	position: relative;
+	min-height: 360px;
+	overflow: hidden;
+	border-right: 1px solid var(--about-line);
+	background: var(--about-chip);
+}
+.about-photo {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	filter: saturate(0.82) contrast(1.04);
+}
+.about-photo-wrap::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(180deg, transparent 58%, rgb(8 17 27 / 0.72));
+	pointer-events: none;
+}
+.about-content {
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: clamp(1.7rem, 5vw, 4rem);
+}
+.about-kicker {
+	margin: 0 0 0.55rem;
+	color: var(--about-accent);
+	font-family: var(--about-mono);
+	font-size: 0.67rem;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+.about-content h3 {
+	margin: 0 0 1rem;
+	font-family: var(--about-display);
+	font-size: clamp(1.8rem, 3vw, 2.8rem);
+	font-weight: 600;
+	line-height: 1.1;
+	letter-spacing: -0.02em;
+}
+.about-bio {
+	max-width: 720px;
+	margin: 0 0 1.35rem;
+	color: color-mix(in srgb, var(--about-text) 78%, var(--about-muted));
+	line-height: 1.75;
+}
+.about-facts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin: 0 0 1.65rem;
+	padding: 0;
+	list-style: none;
+}
+.about-facts li {
+	border: 1px solid var(--about-line);
+	padding: 0.38rem 0.55rem;
+	background: var(--about-chip);
+	font-family: var(--about-mono);
+	font-size: 0.66rem;
+}
+.about-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.55rem;
+}
+.about-links a {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	border: 1px solid var(--about-line);
+	padding: 0.48rem 0.65rem;
+	color: var(--about-muted);
+	font-size: 0.72rem;
+	font-weight: 650;
+	text-decoration: none;
+}
+.about-links a:hover,
+.about-links a:focus-visible {
+	border-color: var(--about-line-hot);
+	color: var(--about-text);
+}
+.about-links svg {
+	width: 16px;
+	height: 16px;
+	fill: currentColor;
+}
+@media (max-width: 760px) {
+	.about-card {
+		grid-template-columns: 1fr;
+	}
+	.about-photo-wrap {
+		min-height: 310px;
+		border-right: 0;
+		border-bottom: 1px solid var(--about-line);
+	}
+}
