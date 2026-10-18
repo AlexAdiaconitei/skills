@@ -1,5 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="12" fill="#1b1812"/>
-  <rect x="5" y="5" width="54" height="54" rx="8" fill="#f6f2ea"/>
-  <text x="32" y="46" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="40" font-weight="700" font-style="italic" fill="#0d5c46">S</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><style>:root{color:#047857}@media(prefers-color-scheme:dark){:root{color:#6EE7B7}}</style><title>Alex Adiaconitei</title><g transform="translate(-50.69 -50.68) scale(1.396)"><path fill="currentColor" d="M181.16 57.87 165.41 73.62C154.78 66.29 141.89 62 128 62C91.55 62 62 91.55 62 128C62 164.45 91.55 194 128 194C143.96 194 158.59 188.34 170 178.91V205.34C135.24 224.26 91.21 217.73 63.48 187.84C32.45 154.39 32.14 102.76 62.76 68.93C93.39 35.11 144.8 30.3 181.16 57.87ZM170 128C170 151.2 151.2 170 128 170C104.8 170 86 151.2 86 128C86 104.8 104.8 86 128 86C151.2 86 170 104.8 170 128ZM194 128C194 114.11 189.71 101.22 182.38 90.59L198.13 74.84C209.72 90.14 216 108.81 216 128V208C216 212.42 212.42 216 208 216H194Z"/></g></svg>
