@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/brand/adiaconitei-horizontal-on-dark.svg">
+    <img src=".github/brand/adiaconitei-horizontal-color.svg" alt="Alex Adiaconitei" width="360">
+  </picture>
+</p>
+
 # skills
 
 Agent skills by [@AlexAdiaconitei](https://github.com/AlexAdiaconitei) for [Claude Code](https://claude.com/claude-code) and other agents that support the [SKILL.md](https://agentskills.io) format.
